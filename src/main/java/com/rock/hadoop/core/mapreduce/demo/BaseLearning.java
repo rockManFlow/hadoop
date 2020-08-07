@@ -17,6 +17,10 @@ import java.net.URI;
 public class BaseLearning {
     public static void main(String[] args) throws IOException {
 
+
+    }
+
+    public void readHdfs2out(String[] args) throws IOException {
         //从HDFS中读取其中的文件，并通过控制台展示出来
         /**
          * Configuration封装了客户端或服务器的配置

@@ -30,9 +30,14 @@ public class Search {
     public static class Map extends Mapper<Object,Text,Text,Text>{
         private static final String word="月";
         private FileSplit fileSplit;
-        @Override
-        protected void setup(Context context) throws IOException, InterruptedException {
-        }
+        /**
+         * 首先执行
+         * @param key 输入key相当于文件
+         * @param value 文件内容
+         * @param context 操作上下文对象
+         * @throws IOException
+         * @throws InterruptedException
+         */
         @Override
         public void map(Object key,Text value,Context context) throws IOException, InterruptedException {
             fileSplit=(FileSplit)context.getInputSplit();
@@ -49,6 +54,14 @@ public class Search {
     }
 
     public static class Reduce extends Reducer<Text,Text,Text,Text>{
+        /**
+         *
+         * @param key 处理map输出的key
+         * @param values map输出的value值
+         * @param context 上下文对象
+         * @throws IOException
+         * @throws InterruptedException
+         */
         @Override
         public void reduce(Text key,Iterable<Text> values,Context context) throws IOException, InterruptedException{
             String lines = "";
@@ -80,6 +93,7 @@ public class Search {
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
 
+        //输出目录处理
         Path path = new Path(otherArgs[1]);// 取第1个表示输出目录参数（第0个参数是输入目录）
         FileSystem fileSystem = path.getFileSystem(conf);// 根据path找到这个文件
         if (fileSystem.exists(path)) {
