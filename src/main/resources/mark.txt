@@ -3,3 +3,4 @@
 映射阶段的任务是计算输入分割出现每个单词的数量
 
 2、reduce
+https://cloud.tencent.com/developer/article/1010720
