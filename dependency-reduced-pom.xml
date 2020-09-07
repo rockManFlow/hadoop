@@ -48,17 +48,7 @@
                   </excludes>
                 </filter>
               </filters>
-              <transformers>
-                <transformer>
-                  <mainClass>com.rock.hadoop.core.mapreduce.demo.Search</mainClass>
-                </transformer>
-                <transformer>
-                  <resource>META-INF/spring.handlers</resource>
-                </transformer>
-                <transformer>
-                  <resource>META-INF/spring.schemas</resource>
-                </transformer>
-              </transformers>
+              <transformers />
             </configuration>
           </execution>
         </executions>
@@ -72,12 +62,18 @@
       <version>1.8.0-beta2</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>1.18.12</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
   <properties>
     <jdk-version>1.8</jdk-version>
     <slf4j-version>1.8.0-beta2</slf4j-version>
     <encoding>UTF-8</encoding>
-    <hadoop-version>3.1.1</hadoop-version>
+    <hadoop-version>3.3.0</hadoop-version>
   </properties>
 </project>
 

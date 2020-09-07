@@ -76,8 +76,9 @@ public class Search {
     public static void main(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
         logger.info("hadoop start...");
         Configuration conf=new Configuration();
-        conf.set("mapred.job.tracker","192.168.171.129:50090");
-        args=new String[]{"hdfs://192.168.171.129:9000/input/file/int2.txt","hdfs://192.168.171.129:9000/output/file3"};
+        conf.set("mapred.job.tracker","192.168.234.129:50070");
+//        args=new String[]{"hdfs://192.168.171.129:9000/input/file/int2.txt","hdfs://192.168.171.129:9000/output/file3"};
+        args=new String[]{"hdfs://192.168.234.129:9000/input/infile/test_file.txt","hdfs://192.168.234.129:9000/input/outfile/count.txt"};
 //
         String[] otherArgs=new GenericOptionsParser(conf,args).getRemainingArgs();
         if(otherArgs.length != 2){

@@ -1,12 +1,11 @@
 package com.rock.hadoop.core.hdfs.util;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -18,8 +17,8 @@ import java.net.URI;
  * @detail
  * @date 2018/9/27 16:20
  */
+@Slf4j
 public class HdfsUtil {
-    private static final Logger logger= LoggerFactory.getLogger(HdfsUtil.class);
     /*
      * 往hdfs中写数据
      */
@@ -46,14 +45,14 @@ public class HdfsUtil {
                 out.flush();
             }
         } catch (IOException e) {
-            logger.error("往HDFS中放数据异常",e);
+            log.error("往HDFS中放数据异常",e);
         }finally{
             //关闭输出流
             if(out!=null){
                 try {
                     out.close();
                 } catch (IOException e) {
-                    logger.error("往HDFS中放数据关闭输出流异常",e);
+                    log.error("往HDFS中放数据关闭输出流异常",e);
                 }
             }
         }
@@ -68,7 +67,7 @@ public class HdfsUtil {
         try {
             FileSystem fs=FileSystem.get(URI.create(fileName),conf);
             if(fs.exists(filePath)){
-                String charset="UTF-8";
+                String charset="GBK";
                 //打开文件数据输入流
                 FSDataInputStream fsDataInputStream=fs.open(filePath);
                 //创建文件输入
@@ -79,20 +78,19 @@ public class HdfsUtil {
                 reader=new BufferedReader(inputStreamReader);
                 //从缓冲区中读取数据
                 while((line=reader.readLine())!=null){
-                    logger.info("line="+line);
+                    System.out.println(line);
+//                    log.info("line="+line);
                 }
             }
         } catch (IOException e) {
-            logger.error("从HDFS中取数据异常",e);
+            e.printStackTrace();
+//            log.error("从HDFS中取数据异常",e);
         }
     }
 
     public static void main(String[] args){
-        //String filename="hdfs://119.29.167.178:9000/test";
-        String filename="/test/file1";
-        String text="我们很6666";
-        writeToHdfs(filename,text);
-        writeToHdfs(filename, "5555555");
-        readFromHdfs(filename);
+//        String filename="hdfs://192.168.234.129:9000/input/infile/test_file.txt";
+//        readFromHdfs(filename);
+        log.info("start");
     }
 }
