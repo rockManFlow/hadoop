@@ -21,8 +21,8 @@ public class QueryHandle {
     public static void main(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
         //创建配置文件
         Configuration conf = new Configuration();
-//        conf.set("fs.hdfs.impl","org.apache.hadoop.hdfs.DistributedFileSystem");
-//        conf.set("fs.defaultFS", "hdfs://192.168.234.129:9000");
+        conf.set("fs.hdfs.impl","org.apache.hadoop.hdfs.DistributedFileSystem");
+        conf.set("fs.defaultFS", "hdfs://192.168.234.129:9000");
 //        conf.set("dfs.client.block.write.replace-datanode-on-failure.policy", "NEVER");
 //        conf.set("mapred.job.tracker","192.168.234.129:50090");
 //        conf.set("hadoop.home.dir","192.168.234.129:9000");
@@ -46,10 +46,10 @@ public class QueryHandle {
         job.setMapOutputValueClass(LongWritable.class);
 
         //指定要处理的输入数据存放路径
-        FileInputFormat.addInputPath(job, new Path("hdfs://192.168.234.129:9000/input/infile/test_file.txt"));
+        FileInputFormat.addInputPath(job, new Path("/input/infile/test_file.txt"));
 
         //指定处理结果的输出数据存放路径---文件夹路径
-        FileOutputFormat.setOutputPath(job, new Path("hdfs://192.168.234.129:9000/input/outfile"));
+        FileOutputFormat.setOutputPath(job, new Path("/input/outfile"));
 
         //将job提交给集群运行
         System.exit(job.waitForCompletion(true) ? 0 : 1);

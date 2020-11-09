@@ -49,7 +49,7 @@ public class Search {
                     context.write(new Text(filename),new Text(line));
                 }
             }
-            logger.info("map run");
+            System.out.println("map run");
         }
     }
 
@@ -69,17 +69,20 @@ public class Search {
                 lines += value.toString()+"---|---";
             }
             context.write(key, new Text(lines));
-            logger.info("reduce run");
+            System.out.println("reduce run");
         }
     }
 
     public static void main(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
-        logger.info("hadoop start...");
+        System.out.println("hadoop start...");
         Configuration conf=new Configuration();
+        conf.set("fs.defaultFS","hdfs://192.168.234.129:9000");
+        conf.set("fs.hdfs.impl","org.apache.hadoop.hdfs.DistributedFileSystem");
+
         conf.set("mapred.job.tracker","192.168.234.129:50070");
-//        args=new String[]{"hdfs://192.168.171.129:9000/input/file/int2.txt","hdfs://192.168.171.129:9000/output/file3"};
-        args=new String[]{"hdfs://192.168.234.129:9000/input/infile/test_file.txt","hdfs://192.168.234.129:9000/input/outfile/count.txt"};
-//
+
+        args=new String[]{"/input/infile/test_file.txt","/input/outfile/count2.txt"};
+
         String[] otherArgs=new GenericOptionsParser(conf,args).getRemainingArgs();
         if(otherArgs.length != 2){
             logger.info("Usage search <int> <out>");
