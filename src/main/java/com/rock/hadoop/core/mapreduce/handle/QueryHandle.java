@@ -23,9 +23,6 @@ public class QueryHandle {
         Configuration conf = new Configuration();
         conf.set("fs.hdfs.impl","org.apache.hadoop.hdfs.DistributedFileSystem");
         conf.set("fs.defaultFS", "hdfs://192.168.234.129:9000");
-//        conf.set("dfs.client.block.write.replace-datanode-on-failure.policy", "NEVER");
-//        conf.set("mapred.job.tracker","192.168.234.129:50090");
-//        conf.set("hadoop.home.dir","192.168.234.129:9000");
         //获取一个作业
         Job job = Job.getInstance(conf);
 
@@ -46,10 +43,10 @@ public class QueryHandle {
         job.setMapOutputValueClass(LongWritable.class);
 
         //指定要处理的输入数据存放路径
-        FileInputFormat.addInputPath(job, new Path("/input/infile/test_file.txt"));
+        FileInputFormat.addInputPath(job, new Path("/input/infile/test_count.txt"));
 
-        //指定处理结果的输出数据存放路径---文件夹路径
-        FileOutputFormat.setOutputPath(job, new Path("/input/outfile"));
+        //指定处理结果的输出数据存放路径---文件路径
+        FileOutputFormat.setOutputPath(job, new Path("/input/outfile/test_count_result.txt"));
 
         //将job提交给集群运行
         System.exit(job.waitForCompletion(true) ? 0 : 1);

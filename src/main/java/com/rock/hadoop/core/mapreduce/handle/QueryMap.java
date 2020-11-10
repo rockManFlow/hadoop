@@ -28,16 +28,17 @@ public class QueryMap extends Mapper<LongWritable, Text, Text, LongWritable> {
      */
     @Override
     public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-        InputSplit inputSplit = context.getInputSplit();
-        log.info("inputSplit.getLocations():{}", inputSplit.getLocations());
-
         //拆分单词
         String lineContext = value.toString();
         //以空格进行拆分
-        StringTokenizer stringTokenizer = new StringTokenizer(lineContext, " ");
+        StringTokenizer stringTokenizer = new StringTokenizer(lineContext, "\"");
         //遍历这个单词数组，输出为key-value的格式，将单词发送给reduce
         while (stringTokenizer.hasMoreTokens()) {
             String word = stringTokenizer.nextToken();
+            if(":".equalsIgnoreCase(word)||",".equalsIgnoreCase(word)||"{".equalsIgnoreCase(word)||"}".equalsIgnoreCase(word)){
+                System.out.println("排除不需要的字符");
+                continue;
+            }
             context.write(new Text(word), new LongWritable(1));
         }
     }

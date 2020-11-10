@@ -296,9 +296,7 @@ public class HdfsUtil {
      * @param dst
      * @throws Exception
      */
-    public void uploadFile(String localSrc, String dst) throws Exception {
-
-        Configuration conf = new Configuration();
+    public static void uploadFile(String localSrc, String dst,Configuration conf) throws Exception {
         File srcFile = new File(localSrc);
         if (srcFile.isDirectory()) {
             copyDirectory(localSrc, dst, conf);
@@ -316,7 +314,7 @@ public class HdfsUtil {
      * @return
      * @throws Exception
      */
-    private boolean copyFile(String localSrc, String dst, Configuration conf) throws Exception {
+    private static boolean copyFile(String localSrc, String dst, Configuration conf) throws Exception {
         File file = new File(localSrc);
         dst = dst + file.getName();
         Path path = new Path(dst);
@@ -337,7 +335,7 @@ public class HdfsUtil {
      * @return
      * @throws Exception
      */
-    private boolean copyDirectory(String src, String dst, Configuration conf) throws Exception {
+    private static boolean copyDirectory(String src, String dst, Configuration conf) throws Exception {
         Path path = new Path(dst);
         FileSystem fs = path.getFileSystem(conf);
         if (!fs.exists(path)) {
@@ -367,7 +365,9 @@ public class HdfsUtil {
         Configuration conf = new Configuration();
         conf.set("fs.defaultFS","hdfs://192.168.234.129:9000");
         conf.set("fs.hdfs.impl","org.apache.hadoop.hdfs.DistributedFileSystem");
-        downloadFileByte("/input/infile/test_file.txt",conf);
+        downloadFileByte("/input/outfile/test_count_result.txt",conf);
+
+//        uploadFile("C:\\Users\\Dell\\Desktop\\test_count.txt","/input/infile/",conf);
     }
 
     /**
