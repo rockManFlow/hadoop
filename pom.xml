@@ -9,7 +9,7 @@
     <version>1.0.0-SNAPSHOT</version>
 
     <properties>
-        <hadoop-version>3.3.0</hadoop-version>
+        <hadoop-version>3.3.3</hadoop-version>
         <jdk-version>1.8</jdk-version>
         <encoding>UTF-8</encoding>
         <slf4j-version>1.8.0-beta2</slf4j-version>
