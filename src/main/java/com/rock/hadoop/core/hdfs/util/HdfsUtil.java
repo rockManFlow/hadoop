@@ -18,27 +18,52 @@ import java.util.List;
  */
 @Slf4j
 public class HdfsUtil {
+    private FileSystem fileSystem;
+    private Configuration conf;
+    public HdfsUtil(){
+        String hdfsUrl="hdfs://127.0.0.1:19000";
+        try {
+            fileSystem=FileSystem.get(URI.create(hdfsUrl),new Configuration());
+        } catch (IOException e) {
+            log.error("get fileSystem error",e);
+        }
+
+        conf = new Configuration();
+        // 这里指定使用的是HDFS文件系统
+        conf.set("fs.defaultFS", hdfsUrl);
+    }
+
+    /**
+     * 将本地的文件上传至HDFS
+     * @param localPath
+     * @param remotePath
+     */
+    public void put(String localPath,String remotePath){
+        try {
+            fileSystem.copyFromLocalFile(new Path(localPath),new Path(remotePath));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     /*
      * 往hdfs中写数据
      */
-    public static void writeToHdfs(String filename,String text){
-        //应该默认是从本机安装的Hadoop中加载对应的信息
-        Configuration configuration=new Configuration();
+    public void writeToHdfs(String filename,String text){
         FSDataOutputStream out=null;
         String charset="UTF-8";
         try {
-            FileSystem fSystem=FileSystem.get(URI.create(filename),configuration);
             Path path=new Path(filename);
-            if(!fSystem.exists(path)){
+            if(!fileSystem.exists(path)){
                 //创建文件数据的输出流
-                out=fSystem.create(new Path(filename));
+                out=fileSystem.create(new Path(filename));
                 //通过输出流往hdfs中写入数据
                 out.write(text.getBytes(charset),0,text.getBytes(charset).length);
                 out.write("\n".getBytes(charset),0,"\n".getBytes(charset).length);
                 out.flush();
             }else{
                 //往文件中追加数据
-                out=fSystem.append(path);
+                out=fileSystem.append(path);
                 out.write(text.getBytes(charset),0,text.getBytes(charset).length);
                 out.write("\n".getBytes(charset),0,"\n".getBytes(charset).length);
                 out.flush();
@@ -60,15 +85,13 @@ public class HdfsUtil {
     /*
      * 从hdfs中读取数据
      */
-    public static void readFromHdfs(String fileName){
-        Configuration conf=new Configuration();
+    public void readFromHdfs(String fileName){
         Path filePath=new Path(fileName);
         try {
-            FileSystem fs=FileSystem.get(URI.create(fileName),conf);
-            if(fs.exists(filePath)){
+            if(fileSystem.exists(filePath)){
                 String charset="GBK";
                 //打开文件数据输入流
-                FSDataInputStream fsDataInputStream=fs.open(filePath);
+                FSDataInputStream fsDataInputStream=fileSystem.open(filePath);
                 //创建文件输入
                 InputStreamReader inputStreamReader=new InputStreamReader(fsDataInputStream,charset);
                 String line=null;
@@ -78,12 +101,10 @@ public class HdfsUtil {
                 //从缓冲区中读取数据
                 while((line=reader.readLine())!=null){
                     System.out.println(line);
-//                    log.info("line="+line);
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
-//            log.error("从HDFS中取数据异常",e);
         }
     }
 
@@ -95,7 +116,6 @@ public class HdfsUtil {
      */
     public String[] getFileList(String srcpath) {
         try {
-            Configuration conf = new Configuration();
             Path path = new Path(srcpath);
             FileSystem fs = path.getFileSystem(conf);
             List<String> files = new ArrayList<String>();
@@ -120,7 +140,6 @@ public class HdfsUtil {
      */
     public void createFile(String dst, byte[] contents)
             throws IOException {
-        Configuration conf = new Configuration();
         Path dstPath = new Path(dst);
         FileSystem fs = dstPath.getFileSystem(conf);
 
@@ -137,7 +156,6 @@ public class HdfsUtil {
      * @throws IOException
      */
     public void delete(String filePath) throws IOException {
-        Configuration conf = new Configuration();
         Path path = new Path(filePath);
         FileSystem fs = path.getFileSystem(conf);
 
@@ -156,7 +174,6 @@ public class HdfsUtil {
      * @throws IOException
      */
     public void mkdir(String path) throws IOException {
-        Configuration conf = new Configuration();
         Path srcPath = new Path(path);
         FileSystem fs = srcPath.getFileSystem(conf);
 
@@ -175,7 +192,6 @@ public class HdfsUtil {
      * @throws IOException
      */
     public void readFile(String filePath) throws IOException {
-        Configuration conf = new Configuration();
         Path srcPath = new Path(filePath);
         FileSystem fs = null;
         URI uri;
@@ -203,7 +219,6 @@ public class HdfsUtil {
      */
     public void downloadFile(String dstPath, String srcPath) throws Exception {
         Path path = new Path(srcPath);
-        Configuration conf = new Configuration();
         FileSystem hdfs = path.getFileSystem(conf);
 
         File rootfile = new File(dstPath);
@@ -260,17 +275,15 @@ public class HdfsUtil {
      * @param srcPath
      * @throws Exception
      */
-    public static void downloadFileByte(String srcPath,Configuration conf) throws Exception {
+    public void downloadFileByte(String srcPath) throws Exception {
         Path path = new Path(srcPath);
-        FileSystem hdfs = null;
-        hdfs = FileSystem.get(URI.create(srcPath), conf);
-        if (hdfs.exists(path)) {
-            if (hdfs.isFile(path)) {
+        if (fileSystem.exists(path)) {
+            if (fileSystem.isFile(path)) {
                 //如果是文件
                 FSDataInputStream in = null;
                 FileOutputStream out = null;
                 try {
-                    in = hdfs.open(new Path(srcPath));
+                    in = fileSystem.open(new Path(srcPath));
                     byte[] t = new byte[in.available()];
                     in.read(t);
                     System.out.println("data:"+new String(t));
@@ -280,10 +293,10 @@ public class HdfsUtil {
                 }
             } else {
                 //如果是目录
-                FileStatus[] srcFileStatus = hdfs.listStatus(new Path(srcPath));
+                FileStatus[] srcFileStatus = fileSystem.listStatus(new Path(srcPath));
                 for (int i = 0; i < srcFileStatus.length; i++) {
                     String srcFile = srcFileStatus[i].getPath().toString();
-                    downloadFileByte(srcFile,conf);
+                    downloadFileByte(srcFile);
                 }
             }
         }
@@ -296,12 +309,12 @@ public class HdfsUtil {
      * @param dst
      * @throws Exception
      */
-    public static void uploadFile(String localSrc, String dst,Configuration conf) throws Exception {
+    public void uploadFile(String localSrc, String dst) throws Exception {
         File srcFile = new File(localSrc);
         if (srcFile.isDirectory()) {
-            copyDirectory(localSrc, dst, conf);
+            copyDirectory(localSrc, dst);
         } else {
-            copyFile(localSrc, dst, conf);
+            copyFile(localSrc, dst);
         }
     }
 
@@ -310,11 +323,10 @@ public class HdfsUtil {
      *
      * @param localSrc
      * @param dst
-     * @param conf
      * @return
      * @throws Exception
      */
-    private static boolean copyFile(String localSrc, String dst, Configuration conf) throws Exception {
+    private boolean copyFile(String localSrc, String dst) throws Exception {
         File file = new File(localSrc);
         dst = dst + file.getName();
         Path path = new Path(dst);
@@ -331,11 +343,10 @@ public class HdfsUtil {
      * 拷贝本地目录到hdfs
      * @param src
      * @param dst
-     * @param conf
      * @return
      * @throws Exception
      */
-    private static boolean copyDirectory(String src, String dst, Configuration conf) throws Exception {
+    private boolean copyDirectory(String src, String dst) throws Exception {
         Path path = new Path(dst);
         FileSystem fs = path.getFileSystem(conf);
         if (!fs.exists(path)) {
@@ -349,25 +360,15 @@ public class HdfsUtil {
             if (f.isDirectory()) {
                 String fname = f.getName();
                 if (dst.endsWith("/")) {
-                    copyDirectory(f.getPath(), dst + fname + "/", conf);
+                    copyDirectory(f.getPath(), dst + fname + "/");
                 } else {
-                    copyDirectory(f.getPath(), dst + "/" + fname + "/", conf);
+                    copyDirectory(f.getPath(), dst + "/" + fname + "/");
                 }
             } else {
-                copyFile(f.getPath(), dst, conf);
+                copyFile(f.getPath(), dst);
             }
         }
         return true;
-    }
-
-
-    public static void main(String[] args) throws Exception {
-        Configuration conf = new Configuration();
-        conf.set("fs.defaultFS","hdfs://192.168.234.129:9000");
-        conf.set("fs.hdfs.impl","org.apache.hadoop.hdfs.DistributedFileSystem");
-        downloadFileByte("/input/outfile/test_count_result.txt",conf);
-
-//        uploadFile("C:\\Users\\Dell\\Desktop\\test_count.txt","/input/infile/",conf);
     }
 
     /**

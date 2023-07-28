@@ -9,19 +9,21 @@
     <version>1.0.0-SNAPSHOT</version>
 
     <properties>
-        <hadoop-version>3.3.0</hadoop-version>
+        <hadoop-version>3.3.6</hadoop-version>
         <jdk-version>1.8</jdk-version>
         <encoding>UTF-8</encoding>
         <slf4j-version>1.8.0-beta2</slf4j-version>
     </properties>
 
     <dependencies>
+        <!--包含了Hadoop中通用的类和接口，例如文件系统API、I/O操作等-->
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-common</artifactId>
             <version>${hadoop-version}</version>
         </dependency>
 
+        <!--客户端集合包 mapreduce-client、yarn-client等-->
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-client</artifactId>
@@ -34,6 +36,7 @@
             <version>1.2.1</version>
         </dependency>
 
+        <!--包含了Hadoop分布式文件系统（HDFS）的客户端API和实现。它依赖于hadoop-common.jar以及一些Hadoop的RPC（Remote Procedure Call）和序列化库-->
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-hdfs</artifactId>
