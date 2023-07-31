@@ -20,8 +20,8 @@ import java.util.List;
 public class HdfsUtil {
     private FileSystem fileSystem;
     private Configuration conf;
-    public HdfsUtil(){
-        String hdfsUrl="hdfs://127.0.0.1:19000";
+    public HdfsUtil(String hdfsUrl){
+//        String hdfsUrl="hdfs://127.0.0.1:19000";
         try {
             fileSystem=FileSystem.get(URI.create(hdfsUrl),new Configuration());
         } catch (IOException e) {
@@ -145,6 +145,7 @@ public class HdfsUtil {
 
         FSDataOutputStream outputStream = fs.create(dstPath);
         outputStream.write(contents);
+        outputStream.flush();
         outputStream.close();
         System.out.println("create file " + dst + " success!");
     }
