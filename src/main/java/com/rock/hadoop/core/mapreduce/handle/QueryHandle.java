@@ -10,6 +10,7 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import java.io.IOException;
+import java.util.StringTokenizer;
 
 /**
  * @author rock
@@ -22,7 +23,7 @@ public class QueryHandle {
         //创建配置文件
         Configuration conf = new Configuration();
         conf.set("fs.hdfs.impl","org.apache.hadoop.hdfs.DistributedFileSystem");
-        conf.set("fs.defaultFS", "hdfs://192.168.234.129:9000");
+        conf.set("fs.defaultFS", "hdfs://127.0.0.1:9000");
         //获取一个作业
         Job job = Job.getInstance(conf);
 
@@ -43,12 +44,28 @@ public class QueryHandle {
         job.setMapOutputValueClass(LongWritable.class);
 
         //指定要处理的输入数据存放路径
-        FileInputFormat.addInputPath(job, new Path("/input/infile/test_count.txt"));
+        FileInputFormat.addInputPath(job, new Path("/input/infile/test_count_int1.txt"));
 
-        //指定处理结果的输出数据存放路径---文件路径
-        FileOutputFormat.setOutputPath(job, new Path("/input/outfile/test_count_result.txt"));
+        //指定处理结果的输出数据存放路径---文件目录(ps：跟引用包的版本有关系)
+        FileOutputFormat.setOutputPath(job, new Path("/input/outfile/test_count_int2"));
+        /**
+         * hdfs://127.0.0.1:9000/input/outfile/test_count_int2/_SUCCESS
+         * hdfs://127.0.0.1:9000/input/outfile/test_count_int2/part-r-00000
+         */
 
         //将job提交给集群运行
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
+
+//    public static void main(String[] args) {
+//        String data="寻声暗问弹者谁，琵琶声停欲语迟。移船相近邀相见，添酒回灯重开宴。";
+//        StringTokenizer stringTokenizer = new StringTokenizer(data, "");
+//        while (stringTokenizer.hasMoreTokens()){
+//            System.out.println(stringTokenizer.nextToken());
+//        }
+////        String[] split = data.split("");
+////        for(String s:split){
+////            System.out.println(s);
+////        }
+//    }
 }

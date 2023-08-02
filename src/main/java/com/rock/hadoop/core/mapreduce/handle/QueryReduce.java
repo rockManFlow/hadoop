@@ -25,6 +25,7 @@ public class QueryReduce extends Reducer<Text, LongWritable, Text, LongWritable>
         for (LongWritable num : values) {
             count += num.get();
         }
+        System.out.println("key:"+key+"|count:"+count);
         context.write(key, new LongWritable(count));
     }
 }

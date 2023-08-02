@@ -1,17 +1,19 @@
 package com.rock.hadoop.core.mapreduce.handle;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.SetUtils;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.Mapper;
 
 import java.io.IOException;
-import java.util.StringTokenizer;
+import java.util.*;
 
 /**
  * @author rock
- * @detail
+ * @detail 统计个数
  * @date 2020/9/7 16:16
  */
 @Slf4j
@@ -31,15 +33,32 @@ public class QueryMap extends Mapper<LongWritable, Text, Text, LongWritable> {
         //拆分单词
         String lineContext = value.toString();
         //以空格进行拆分
-        StringTokenizer stringTokenizer = new StringTokenizer(lineContext, "\"");
+        String[] dataArr = lineContext.split("");
+        //排除的字符
+        List<String> list = Arrays.asList(":", ",", "，", "。", "《", "》", "？", "！"," ","；");
+        HashSet<String> excludeSet = new HashSet<>(list);
         //遍历这个单词数组，输出为key-value的格式，将单词发送给reduce
-        while (stringTokenizer.hasMoreTokens()) {
-            String word = stringTokenizer.nextToken();
-            if(":".equalsIgnoreCase(word)||",".equalsIgnoreCase(word)||"{".equalsIgnoreCase(word)||"}".equalsIgnoreCase(word)){
+        for(String word:dataArr) {
+            if(isExclude(word,excludeSet)){
                 System.out.println("排除不需要的字符");
                 continue;
             }
+            System.out.println("map word:"+word);
             context.write(new Text(word), new LongWritable(1));
         }
     }
+
+    private boolean isExclude(String word, Set<String> excludeSets){
+        if(CollectionUtils.isEmpty(excludeSets)){
+            return false;
+        }
+        for(String exclude:excludeSets){
+            if(exclude.equalsIgnoreCase(word)){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
 }

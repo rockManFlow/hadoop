@@ -31,6 +31,7 @@ public class HdfsUtil {
         conf = new Configuration();
         // 这里指定使用的是HDFS文件系统
         conf.set("fs.defaultFS", hdfsUrl);
+        conf.set("fs.hdfs.impl","org.apache.hadoop.hdfs.DistributedFileSystem");
     }
 
     /**
@@ -293,10 +294,12 @@ public class HdfsUtil {
                     IOUtils.closeStream(out);
                 }
             } else {
+                System.out.println("mulu");
                 //如果是目录
                 FileStatus[] srcFileStatus = fileSystem.listStatus(new Path(srcPath));
                 for (int i = 0; i < srcFileStatus.length; i++) {
                     String srcFile = srcFileStatus[i].getPath().toString();
+                    System.out.println("srcFile:"+srcFile);
                     downloadFileByte(srcFile);
                 }
             }
