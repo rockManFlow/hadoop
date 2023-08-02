@@ -1,0 +1,27 @@
+1、
+  InputFormat主要用于描述输入数据的格式，它提供以下两个功能：
+
+  数据切分：按照某个策略将输入数据切分成若干个分片（split），以便确定MapTask个数以及对应的分片（split）。
+  为Mapper提供输入数据：给定某个分片（split），将其解析成一个一个的key/value键值对。
+
+2、OutputFormat是一个用于描述MapReduce程序输出格式和规范的抽象类
+
+
+
+【】mapreduce运行模式
+MapReduce程序的运行模式主要有两种：
+
+（1）本地运行模式：在当前的开发环境模拟MapReduce执行环境，处理的数据及输出结果在本地操作系统。
+
+（2）集群运行模式：把MapReduce程序打成一个Jar包，提交至Yarn集群上去运行任务。由于Yarn集群负责资源管理和任务调度，程序会被框架分发到集群中的节点上并发的执行，因此处理的数据和输出结果都在HDFS文件系统中。
+
+目前在idea中直接跑的程序模式就是本地模（例如：我们编写的QueryHandle类）。--中间输出的结果是存储在本地。输入文件+输出结果文件是在hdfs中。
+
+
+tip:
+可以直接使用本地的文件或者使用hdfs的文件来处理
+// 使用本地模式指定要处理的数据所在的位置
+**FileInputFormat.setInputPaths(wcjob,"D:/mr/input")**;
+
+// 使用本地模式指定处理完成之后的结果所保存的位置
+**FileOutputFormat.setOutputPath(wcjob,new Path("D:/mr/output"))**;
