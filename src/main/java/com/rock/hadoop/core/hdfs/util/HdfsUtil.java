@@ -48,27 +48,22 @@ public class HdfsUtil {
     }
 
     /*
-     * 往hdfs中写数据
+     * 往hdfs中写数据--如果文件不存在，则创建并写数据。如果已存在，则追加数据到该文件
      */
-    public void writeToHdfs(String filename,String text){
+    public void appendToFile(String pathUrl,byte[] dataArray){
         FSDataOutputStream out=null;
-        String charset="UTF-8";
         try {
-            Path path=new Path(filename);
+            Path path=new Path(pathUrl);
             if(!fileSystem.exists(path)){
                 //创建文件数据的输出流
-                out=fileSystem.create(new Path(filename));
-                //通过输出流往hdfs中写入数据
-                out.write(text.getBytes(charset),0,text.getBytes(charset).length);
-                out.write("\n".getBytes(charset),0,"\n".getBytes(charset).length);
-                out.flush();
+                out=fileSystem.create(new Path(pathUrl));
             }else{
                 //往文件中追加数据
                 out=fileSystem.append(path);
-                out.write(text.getBytes(charset),0,text.getBytes(charset).length);
-                out.write("\n".getBytes(charset),0,"\n".getBytes(charset).length);
-                out.flush();
             }
+            //通过输出流往hdfs中写入数据
+            out.write(dataArray,0,dataArray.length);
+            out.flush();
         } catch (IOException e) {
             log.error("往HDFS中放数据异常",e);
         }finally{
