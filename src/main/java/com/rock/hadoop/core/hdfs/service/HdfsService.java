@@ -1,98 +1,45 @@
 package com.rock.hadoop.core.hdfs.service;
 
-import com.rock.hadoop.core.hdfs.util.HdfsUtil;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-
 import java.io.IOException;
-import java.io.RandomAccessFile;
 
-/**
- * 进行hdfs的基本操作
- */
-public class HdfsService {
-    public static void main(String[] args) throws Exception {
-//        writeCycle();
-//        read("/input/infile/test_count_int1.txt");
-        //查询通过MapReduce计算的结果文件信息
-//        read("/input/outfile/test_count_int1_result.txt");
-
-        loadFileList("/input/outfile/test_count_int2");
-//        String hdfsUrl="hdfs://127.0.0.1:9000";
-//        HdfsUtil hdfsUtil=new HdfsUtil(hdfsUrl);
-//        hdfsUtil.downloadFileByte("/input/outfile/test_count_int2");
-    }
+public interface HdfsService {
+    /**
+     * 加载本地文件到hdfs中(循环写数据到远端，防止文件过大导致内存溢出)
+     * @param filePath
+     * @return
+     */
+    boolean loadFileToHdfs(String filePath,String remotePath) throws IOException;
 
     /**
-     * ok
+     * 往指定路径下追加数据（路径不存在会创建再追加）
+     * @param remotePath
+     * @param data
+     * @return
+     */
+    boolean appendToFile(String remotePath,byte[] data);
+
+    /**
+     * 从远端下载文件（如果是文件夹会下载文件夹中的所有文件到本地）
+     * @param remotePath 远端路径（文件路径或者文件夹路径）
+     * @param localPath 本地路径（不包含文件名）
+     * @return
      * @throws IOException
      */
-    public static void writeCycle() throws IOException {
-        Configuration conf = new Configuration();
-        conf.set("fs.defaultFS", "hdfs://127.0.0.1:9000");
-        Path dstPath = new Path("/input/infile/test_count_int1.txt");
-        FileSystem fs = dstPath.getFileSystem(conf);
-        FSDataOutputStream outputStream = fs.create(dstPath);
+    boolean downloadFile(String remotePath,String localPath) throws IOException;
 
+    /**
+     * 删除远端文件
+     * @param remotePath
+     * @return
+     * @throws IOException
+     */
+    boolean deleteFile(String remotePath) throws IOException;
 
-        RandomAccessFile randomAccessFile=new RandomAccessFile("conf/int1.txt","r");
-        byte[] data=new byte[32];
-        int i;
-        while (true){
-            i=randomAccessFile.read(data);
-            if(i==-1){
-                break;
-            }
-            outputStream.write(data);
-            outputStream.flush();
-            data=new byte[32];
-        }
-
-        outputStream.close();
-        System.out.println("create file success!");
-    }
-
-    public static void loadFileList(String filePath){
-        String hdfsUrl="hdfs://127.0.0.1:9000";
-        HdfsUtil hdfsUtil=new HdfsUtil(hdfsUrl);
-        //输出到控制台-OK
-        String[] fileList = hdfsUtil.getFileList(filePath);
-        for(String file:fileList){
-            System.out.println(file);
-        }
-    }
-    public static void read(String filePath) throws Exception {
-        String hdfsUrl="hdfs://127.0.0.1:9000";
-        HdfsUtil hdfsUtil=new HdfsUtil(hdfsUrl);
-        //输出到控制台-OK
-        hdfsUtil.readFile(filePath);
-
-        //ok
-//        hdfsUtil.downloadFileByte("local_int3.txt");
-
-//        String[] fileList = hdfsUtil.getFileList("local_int3.txt");
-//        for(String url:fileList){
-//            System.out.println(url);
-//        }
-    }
-
-    public static void write() throws IOException {
-        String hdfsUrl="hdfs://127.0.0.1:9000";
-        HdfsUtil hdfsUtil=new HdfsUtil(hdfsUrl);
-        RandomAccessFile randomAccessFile=new RandomAccessFile("conf/int1.txt","r");
-        byte[] data=new byte[1024];
-        int i;
-        while (true){
-            i=randomAccessFile.read(data);
-            if(i==-1){
-                break;
-            }
-            hdfsUtil.createFile("/input/infile/test_count.txt",data);
-            data=new byte[1024];
-        }
-    }
-
-
+    /**
+     * 创建文件夹
+     * @param remotePath
+     * @return
+     * @throws IOException
+     */
+    boolean mkdir(String remotePath) throws IOException;
 }
