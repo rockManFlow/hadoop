@@ -1,0 +1,17 @@
+【】Spark与MapReduce区别
+MapReduce：基于磁盘进行计算，中间计算的结果都是存储在磁盘中，每次计算都是从磁盘中来加载数据。
+    （一次 MapReduce 运算之后,会将数据的运算结果从内存写入到磁盘中,第二次 Mapredue 运算时在从磁盘中读取数据,所以其瓶颈在2次运算间的多余 IO 消耗）
+    Hadoop 的 Map 和 reduce 之间的 shuffle 需要 sort。
+
+Spark：Spark 则是将数据一直缓存在内存中,直到计算得到最后的结果,再将结果写入到磁盘,所以多次运算的情况下, Spark 是比较快的.
+    当内存不足时，可以溢出到磁盘上。
+
+【】spark介绍
+Spark 是使用 scala 实现的基于内存计算的大数据开源集群计算环境.
+
+Spark 集群中,分为 Master 节点与 worker 节点,,其中 Master 节点上常驻 Master 守护进程和 Driver 进程,
+Master 负责将串行任务变成可并行执行的任务集Tasks, 同时还负责出错问题处理等,而 Worker 节点上常驻 Worker 守护进程,
+Master 节点与 Worker 节点分工不同, Master 负载管理全部的 Worker 节点,而 Worker 节点负责执行任务.
+
+Spark 支持不同的运行模式,包括Local, Standalone,Mesoses,Yarn 模式.不同的模式可能会将 Driver 调度到不同的节点上执行.
+

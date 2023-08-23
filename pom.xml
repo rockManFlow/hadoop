@@ -43,7 +43,7 @@
             <version>${hadoop-version}</version>
         </dependency>
 
-        <!--日志-->
+        <!--log4j 日志-->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
@@ -66,6 +66,14 @@
             <artifactId>lombok</artifactId>
             <version>1.18.12</version>
             <scope>provided</scope>
+        </dependency>
+
+
+        <!--spark API 版本依赖机器安装的Spark版本-->
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-core_2.13</artifactId>
+            <version>3.4.1</version>
         </dependency>
 
 
