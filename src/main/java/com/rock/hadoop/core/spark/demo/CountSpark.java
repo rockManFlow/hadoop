@@ -13,14 +13,15 @@ public class CountSpark {
     public static void main(String[] args) {
         // 创建Spark实例
         SparkConf conf = new SparkConf().setAppName("WordCount").setMaster("local");
+        //java 上下文
         JavaSparkContext jsc = new JavaSparkContext(conf);
 
         // 读取数据，这里是一个关于Spark介绍的文本
-        String filename = "path/to/spark.txt";
+        String filename = "/Users/opayc/products/hadoop/conf/int1.txt";
         JavaRDD<String> data = jsc.textFile(filename);
 
         // 切割压平
-        JavaRDD<String> dataMap = data.flatMap(t -> Arrays.asList(t.split(" ")).iterator());
+        JavaRDD<String> dataMap = data.flatMap(t -> Arrays.asList(t.split("，")).iterator());
 
         // 组合成元组
         JavaPairRDD<String, Integer> dataPair = dataMap.mapToPair(t -> new Tuple2<>(t,1));
@@ -35,7 +36,7 @@ public class CountSpark {
 
         // 保存结果，saveAsTextFile()方法是将RDD写到本地，根据执行task的多少生成多少个文件
         // 输出目录不能预先存在，否则报错
-        result.saveAsTextFile("path/to/spark_count");
+        result.saveAsTextFile("/Users/opayc/products/hadoop/conf/out/spark");
         // 输出第一个
         List<Tuple2<String, Integer>> resList = result.collect();
         for(Tuple2<String, Integer> tp:resList){
