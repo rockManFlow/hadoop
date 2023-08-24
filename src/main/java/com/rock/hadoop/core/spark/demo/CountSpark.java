@@ -18,8 +18,8 @@ public class CountSpark {
     private static final Pattern SPACE = Pattern.compile("");
     public static void main(String[] args) throws Exception {
         String[] paths=new String[2];
-        paths[0]="/Users/opayc/products/hadoop/conf/int1.txt";
-        paths[1]="/Users/opayc/products/hadoop/conf/out/spark";
+        paths[0]="D:\\opayProduct\\hadoop\\conf\\int1.txt";
+        paths[1]="D:\\opayProduct\\hadoop\\conf\\out\\spark";
         javaWordCount(paths);
     }
 
@@ -30,7 +30,7 @@ public class CountSpark {
         JavaSparkContext jsc = new JavaSparkContext(conf);
 
         // 读取数据，这里是一个关于Spark介绍的文本
-        String filename = "/Users/opayc/products/hadoop/conf/int1.txt";
+        String filename = "D:\\opayProduct\\hadoop\\conf\\int1.txt";
         JavaRDD<String> data = jsc.textFile(filename);
 
         // 切割压平
@@ -49,7 +49,7 @@ public class CountSpark {
 
         // 保存结果，saveAsTextFile()方法是将RDD写到本地，根据执行task的多少生成多少个文件
         // 输出目录不能预先存在，否则报错
-        result.saveAsTextFile("/Users/opayc/products/hadoop/conf/out/spark");
+        result.saveAsTextFile("D:\\opayProduct\\hadoop\\conf\\out\\spark");
         // 输出第一个
         List<Tuple2<String, Integer>> resList = result.collect();
         for(Tuple2<String, Integer> tp:resList){
