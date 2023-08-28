@@ -15,3 +15,6 @@ Master 节点与 Worker 节点分工不同, Master 负载管理全部的 Worker 
 
 Spark 支持不同的运行模式,包括Local, Standalone,Mesoses,Yarn 模式.不同的模式可能会将 Driver 调度到不同的节点上执行.
 
+ps:
+运行程序前得安装spark环境，由于是使用Scala编写的，仅是提供了java API的接口，具体的执行还是得Scala程序来运行，因此需要先安装。
+

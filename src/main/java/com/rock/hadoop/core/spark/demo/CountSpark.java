@@ -16,10 +16,15 @@ import java.util.regex.Pattern;
 
 public class CountSpark {
     private static final Pattern SPACE = Pattern.compile("");
+
+
+
     public static void main(String[] args) throws Exception {
+        String osType = System.getProperty("os.name");
+        System.out.println(osType);
         String[] paths=new String[2];
-        paths[0]="D:\\opayProduct\\hadoop\\conf\\int1.txt";
-        paths[1]="D:\\opayProduct\\hadoop\\conf\\out\\spark";
+        paths[0]=osType.contains("Mac")?"/Users/opayc/products/hadoop/conf/int1.txt":"D:\\opayProduct\\hadoop\\conf\\int1.txt";
+        paths[1]=osType.contains("Mac")?"/Users/opayc/products/hadoop/conf/out/spark":"D:\\opayProduct\\hadoop\\conf\\out\\spark";
         javaWordCount(paths);
     }
 
@@ -90,18 +95,20 @@ public class CountSpark {
          *
          * flatmap属于一类非常常用的spark函数，简单的说作用就是将一条rdd数据使用你定义的函数给分解成多条rdd数据
          * 例如，当前状态下，lines这个rdd类型的变量中，每一条数据都是一行String，我们现在想把他拆分成1个个的词的话，
-         * 可以这样写 ：
+         * 可以这样写 ：flatMap输出一个一个的，非k-v形式
          */
         //flatMap与map的区别是，对每个输入，flatMap会生成一个或多个的输出，而map只是生成单一的输出
         //用空格分割各个单词,输入一行,输出多个对象,所以用flatMap
+
+        List<String> excludeList = Arrays.asList(":", ",", "，", "。", "《", "》", "？", "！"," ","；");
         JavaRDD<String> words = lines.flatMap(new FlatMapFunction<String, String>() {
             @Override
             public Iterator<String> call(String s) {
-                return Arrays.asList(SPACE.split(s)).iterator();
+                return Arrays.asList(SPACE.split(s)).stream().filter(c->!excludeList.contains(c)).iterator();
             }
         });
         /**
-         * map 键值对 ，类似于MR的map方法
+         * 输出map 键值对 ，类似于MR的map方法
          * pairFunction<T,K,V>: T:输入类型；K,V：输出键值对
          * 表示输入类型为T,生成的key-value对中的key类型为k,value类型为v,对本例,T=String, K=String, V=Integer(计数)
          * 需要重写call方法实现转换
