@@ -15,7 +15,12 @@ import java.util.List;
 import java.util.Properties;
 
 /**
- * sql表达式如何来写？？
+ * 问题
+ * 1、sql表达式如何来写？？
+ * 2、对于读出来的DB数据如何进行分析？
+ * 3、spark sql包的作用？仅是用于db的操作？
+ * 4、spark对db能做什么？好处？
+ * 5、spark的各种使用场景及实践？？--正常用法对于spark
  */
 public class MysqlSpark {
     public static void main(String[] args) {
