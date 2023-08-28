@@ -14,10 +14,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
 
+/**
+ * 计算指定文件中各个字符出现的次数并从大到小排序输出
+ */
 public class CountSpark {
     private static final Pattern SPACE = Pattern.compile("");
-
-
 
     public static void main(String[] args) throws Exception {
         String osType = System.getProperty("os.name");
@@ -26,44 +27,6 @@ public class CountSpark {
         paths[0]=osType.contains("Mac")?"/Users/opayc/products/hadoop/conf/int1.txt":"D:\\opayProduct\\hadoop\\conf\\int1.txt";
         paths[1]=osType.contains("Mac")?"/Users/opayc/products/hadoop/conf/out/spark":"D:\\opayProduct\\hadoop\\conf\\out\\spark";
         javaWordCount(paths);
-    }
-
-    public static void firstOne(){
-        // 创建Spark实例
-        SparkConf conf = new SparkConf().setAppName("WordCount").setMaster("local");
-        //java 上下文
-        JavaSparkContext jsc = new JavaSparkContext(conf);
-
-        // 读取数据，这里是一个关于Spark介绍的文本
-        String filename = "D:\\opayProduct\\hadoop\\conf\\int1.txt";
-        JavaRDD<String> lines = jsc.textFile(filename);
-
-        // 切割压平--拆分数据
-        JavaRDD<String> dataMap = lines.flatMap(t -> Arrays.asList(t.split("，")).iterator());
-
-        // 组合成元组--转换数据
-        JavaPairRDD<String, Integer> dataPair = dataMap.mapToPair(t -> new Tuple2<>(t,1));
-
-        // 分组聚合--相同key的元数据value进行聚合
-        JavaPairRDD<String, Integer> dataAgg = dataPair.reduceByKey((w1,w2) -> w1+w2);
-
-        // 交换key，再排序--元数据key-value进行交换
-        JavaPairRDD<Integer, String> dataSwap = dataAgg.mapToPair(tp -> tp.swap());
-        //通过交换后的value-key通过value进行降序排序
-        JavaPairRDD<Integer, String> dataSort = dataSwap.sortByKey(false);
-        //排完序的元数据，再交换回来
-        JavaPairRDD<String, Integer> result = dataSort.mapToPair(tp -> tp.swap());
-
-        // 保存结果，saveAsTextFile()方法是将RDD写到本地，根据执行task的多少生成多少个文件
-        // 输出目录不能预先存在，否则报错
-        result.saveAsTextFile("D:\\opayProduct\\hadoop\\conf\\out\\spark");
-        // 输出第一个
-        List<Tuple2<String, Integer>> resList = result.collect();
-        for(Tuple2<String, Integer> tp:resList){
-            System.out.println(tp._1+"\t"+tp._2);
-        }
-
-        jsc.stop();
     }
 
     /**
