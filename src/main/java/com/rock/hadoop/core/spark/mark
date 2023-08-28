@@ -18,3 +18,5 @@ Spark 支持不同的运行模式,包括Local, Standalone,Mesoses,Yarn 模式.�
 ps:
 运行程序前得安装spark环境，由于是使用Scala编写的，仅是提供了java API的接口，具体的执行还是得Scala程序来运行，因此需要先安装。
 
+
+spark-submit --class com.techprimers.spark.App /Users/apple/Downloads/spark-java-example/target/spark-java-example-1.0-SNAPSHOT.jar --master local[3]

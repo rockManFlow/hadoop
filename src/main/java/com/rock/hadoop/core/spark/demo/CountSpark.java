@@ -125,6 +125,10 @@ public class CountSpark {
         //排完序的元数据，再交换回来
         JavaPairRDD<String, Integer> resultSort = dataSort.mapToPair(tp -> tp.swap());
 
+        /**
+         * sort.saveAsNewAPIHadoopFile();
+         * sort.saveAsHadoopFile();
+         */
         //保存结果到文件
         resultSort.saveAsTextFile(args[1]);
 
@@ -138,4 +142,17 @@ public class CountSpark {
         }
         ctx.stop();
     }
+
+    /**
+     * RDD 函数解释
+     * filter：的时候会过滤掉那些返回只为false的数据
+     * lines.collect();  List<String>
+     * lines.union();    javaRDD<String>
+     * lines.top(1);     List<String>
+     * lines.count();    long
+     * lines.countByValue();
+     * lines.cache();   //暂时放在缓存中，一般用于哪些可能需要多次使用的RDD，据说这样会减少运行时间
+     * counts.sortByKey();  通过key进行排序
+     * collect：该方法用于将spark的RDD类型转化为我们熟知的java常见类型
+     */
 }
