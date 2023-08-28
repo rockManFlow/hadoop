@@ -36,20 +36,22 @@ public class CountSpark {
 
         // 读取数据，这里是一个关于Spark介绍的文本
         String filename = "D:\\opayProduct\\hadoop\\conf\\int1.txt";
-        JavaRDD<String> data = jsc.textFile(filename);
+        JavaRDD<String> lines = jsc.textFile(filename);
 
-        // 切割压平
-        JavaRDD<String> dataMap = data.flatMap(t -> Arrays.asList(t.split("，")).iterator());
+        // 切割压平--拆分数据
+        JavaRDD<String> dataMap = lines.flatMap(t -> Arrays.asList(t.split("，")).iterator());
 
-        // 组合成元组
+        // 组合成元组--转换数据
         JavaPairRDD<String, Integer> dataPair = dataMap.mapToPair(t -> new Tuple2<>(t,1));
 
-        // 分组聚合
+        // 分组聚合--相同key的元数据value进行聚合
         JavaPairRDD<String, Integer> dataAgg = dataPair.reduceByKey((w1,w2) -> w1+w2);
 
-        // 交换key，再排序
+        // 交换key，再排序--元数据key-value进行交换
         JavaPairRDD<Integer, String> dataSwap = dataAgg.mapToPair(tp -> tp.swap());
+        //通过交换后的value-key通过value进行降序排序
         JavaPairRDD<Integer, String> dataSort = dataSwap.sortByKey(false);
+        //排完序的元数据，再交换回来
         JavaPairRDD<String, Integer> result = dataSort.mapToPair(tp -> tp.swap());
 
         // 保存结果，saveAsTextFile()方法是将RDD写到本地，根据执行task的多少生成多少个文件
@@ -64,6 +66,11 @@ public class CountSpark {
         jsc.stop();
     }
 
+    /**
+     * ok
+     * @param args
+     * @throws Exception
+     */
     public static void javaWordCount(String[] args) throws Exception {
         if (args.length < 1) {
             System.err.println("Usage: JavaWordCount <file>");
@@ -148,14 +155,21 @@ public class CountSpark {
             }
         });
 
+        // 交换key，再排序--元数据key-value进行交换
+        JavaPairRDD<Integer, String> dataSwap = counts.mapToPair(tp -> tp.swap());
+        //通过交换后的value-key通过value进行降序排序
+        JavaPairRDD<Integer, String> dataSort = dataSwap.sortByKey(false);
+        //排完序的元数据，再交换回来
+        JavaPairRDD<String, Integer> resultSort = dataSort.mapToPair(tp -> tp.swap());
+
         //保存结果到文件
-        counts.saveAsTextFile(args[1]);
+        resultSort.saveAsTextFile(args[1]);
 
         /**
          * 聚合
          * collect方法用于将spark的RDD类型转化为我们熟知的java常见类型
          */
-        List<Tuple2<String, Integer>> output = counts.collect();
+        List<Tuple2<String, Integer>> output = resultSort.collect();
         for (Tuple2<?,?> tuple : output) {
             System.out.println(tuple._1() + ": " + tuple._2());
         }
