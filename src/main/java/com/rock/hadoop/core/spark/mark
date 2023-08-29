@@ -19,5 +19,19 @@ ps:
 运行程序前得安装spark环境，由于是使用Scala编写的，仅是提供了java API的接口，具体的执行还是得Scala程序来运行，因此需要先安装。
 
 
-运行方式
+【】运行方式
 方式1：spark-submit --class com.xxxx.App xxxxx.jar --master local[3]  --验证OK
+
+【】SparkSQL
+SparkSQL可以理解为在原生的RDD上做的一层封装，通过SparkSQL可以在scala和java中写SQL语句，Spark SQL也可以用来从Hive中读取数据，
+并将结果作为Dataset/DataFrame返回。简单来讲，SparkSQL可以让我们像写SQL一样去处理内存中的数据。
+它是用来处理结构化的数据，例如具有schema结构的数据，json, parquet, avro, csv格式的。
+比如txt的等非格式化数据可以通过spark转成指定格式化的数据，再通过sql进行查询。
+
+通过spark sql ，可以使用SQL 或者 HQL 来查询数据，查询结果以Dataset/DataFrame 的形式返回
+它支持多种数据源，如Hive 表、Parquet 以及 JSON 等
+它支持开发者将SQL 和传统的RDD 变成相结合
+
+产生背景
+我们可以直接通过写sql来分析大数据中的数据。
+hive是把sql翻译成mapreduce作业，mapreduce执行效率是不高的（当数据量比较大，执行时间可能十几个小时）
