@@ -26,10 +26,13 @@ public class CountSpark {
 //        paths[1]=osType.contains("Mac")?"/Users/opayc/products/hadoop/conf/out/spark":"D:\\opayProduct\\hadoop\\conf\\out\\spark";
 //        javaWordCount(paths);
 
-        baseOperate();
+        sortOperate();
     }
 
-    public static void baseOperate(){
+    /**
+     * ok
+     */
+    public static void sortOperate(){
         SparkConf sparkConf = new SparkConf().setAppName("base").setMaster("local");
         JavaSparkContext ctx = new JavaSparkContext(sparkConf);
         //从内存集合中创建RDD
