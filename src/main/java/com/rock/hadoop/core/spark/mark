@@ -16,7 +16,7 @@ Master 节点与 Worker 节点分工不同, Master 负载管理全部的 Worker 
 Spark 支持不同的运行模式,包括Local, Standalone,Mesoses,Yarn 模式.不同的模式可能会将 Driver 调度到不同的节点上执行.
 
 ps:
-运行程序前得安装spark环境，由于是使用Scala编写的，仅是提供了java API的接口，具体的执行还是得Scala程序来运行，因此需要先安装。
+运行程序前得安装spark环境，由于是使用Scala编写的，仅是提供了java API的接口，具体的执行还是得Scala程序来运行，因此需要先安装。---验证不安装也可以本地运行
 
 
 【】运行方式
@@ -35,3 +35,10 @@ SparkSQL可以理解为在原生的RDD上做的一层封装，通过SparkSQL可�
 产生背景
 我们可以直接通过写sql来分析大数据中的数据。
 hive是把sql翻译成mapreduce作业，mapreduce执行效率是不高的（当数据量比较大，执行时间可能十几个小时）
+
+
+【问题】
+1、mp和spark在各个环境如何来运行--本地、机群等方式
+2、好的场景使用spark来构建项目？
+3、spark等计算框架原理思考贯通？
+

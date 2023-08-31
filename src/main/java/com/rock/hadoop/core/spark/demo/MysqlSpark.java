@@ -14,10 +14,7 @@ import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 import scala.reflect.ClassTag;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -38,7 +35,9 @@ public class MysqlSpark {
                 .getOrCreate();
         SQLContext sqlContext = new SQLContext(spark);
         //读取mysql数据
-        readMethod1SQL(sqlContext);
+//        readMethod1SQL(sqlContext);
+        //
+        readMethod2SQL(sqlContext);
         //读db数据
 //        readSql(sqlContext);
         //写数据
@@ -151,6 +150,23 @@ public class MysqlSpark {
         dataset.select("*").orderBy(dataset.col("id").desc());
         //显示数据--显示行数
         dataset.show(10);
+    }
+
+    /**
+     * 方式2来从db中读取数据
+     * @param sqlContext
+     */
+    private static void readMethod2SQL(SQLContext sqlContext){
+        //查找的表名
+        String table = "card_config_dict";
+        //增加数据库的用户名(user)密码(password),指定test数据库的驱动(driver)
+        Properties  properties= buildDbProperties();
+        properties.put("dbtable",table);
+        Map options=new HashMap<>(properties);
+
+        Dataset<Row> jdbc = sqlContext.read().format("jdbc").options(options).load();
+        jdbc.select("*").orderBy(jdbc.col("id").desc()).limit(10);//对结果进行sql处理，并不是在DB中进行sql处理
+        jdbc.show();
     }
 
     /**

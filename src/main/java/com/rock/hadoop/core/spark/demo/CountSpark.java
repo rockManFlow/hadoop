@@ -4,9 +4,7 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.FlatMapFunction;
-import org.apache.spark.api.java.function.Function2;
-import org.apache.spark.api.java.function.PairFunction;
+import org.apache.spark.api.java.function.*;
 import scala.Tuple2;
 
 import java.util.Arrays;
@@ -21,12 +19,46 @@ public class CountSpark {
     private static final Pattern SPACE = Pattern.compile("");
 
     public static void main(String[] args) throws Exception {
-        String osType = System.getProperty("os.name");
-        System.out.println(osType);
-        String[] paths=new String[2];
-        paths[0]=osType.contains("Mac")?"/Users/opayc/products/hadoop/conf/int1.txt":"D:\\opayProduct\\hadoop\\conf\\int1.txt";
-        paths[1]=osType.contains("Mac")?"/Users/opayc/products/hadoop/conf/out/spark":"D:\\opayProduct\\hadoop\\conf\\out\\spark";
-        javaWordCount(paths);
+//        String osType = System.getProperty("os.name");
+//        System.out.println(osType);
+//        String[] paths=new String[2];
+//        paths[0]=osType.contains("Mac")?"/Users/opayc/products/hadoop/conf/int1.txt":"D:\\opayProduct\\hadoop\\conf\\int1.txt";
+//        paths[1]=osType.contains("Mac")?"/Users/opayc/products/hadoop/conf/out/spark":"D:\\opayProduct\\hadoop\\conf\\out\\spark";
+//        javaWordCount(paths);
+
+        baseOperate();
+    }
+
+    public static void baseOperate(){
+        SparkConf sparkConf = new SparkConf().setAppName("base").setMaster("local");
+        JavaSparkContext ctx = new JavaSparkContext(sparkConf);
+        //从内存集合中创建RDD
+        JavaRDD<String> javaRDD = ctx.parallelize(Arrays.asList("111", "222", "333","888","777","222"));
+
+        //String转换Long
+        JavaRDD<Long> parseMapRDD = javaRDD.map(new Function<String, Long>() {
+            @Override
+            public Long call(String s) throws Exception {
+                return Long.parseLong(s);
+            }
+        });
+
+
+        //进行排序
+        JavaRDD<Long> sortRDD = parseMapRDD.sortBy(new Function<Long, Long>() {
+
+            @Override
+            public Long call(Long s) throws Exception {
+                return s;
+            }
+        }, false, 2);
+
+        //聚合输出
+        List<Long> collect = sortRDD.collect();
+        for(Long d:collect){
+            System.out.println(d);
+        }
+
     }
 
     /**
