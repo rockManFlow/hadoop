@@ -75,3 +75,9 @@ Standalone Cluster
 
 【】Mesoses,Yarn
     Mesoses,Yarn这俩模式一样，都是用于分发和资源管理任务。
+
+/**
+ * master=local：表示单机本地运行
+ * master=local[4]：表示单机本地4核运行
+ * master=spark://master:7077：表示在一个spark standalone cluster 上运行
+ */
