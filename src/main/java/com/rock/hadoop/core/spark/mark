@@ -39,6 +39,39 @@ hive是把sql翻译成mapreduce作业，mapreduce执行效率是不高的（当�
 
 【问题】
 1、mp和spark在各个环境如何来运行--本地、机群等方式
+    spark机群模式运行原理及一个任务如何来执行？？
+    yarn模式具体操作？？
 2、好的场景使用spark来构建项目？
 3、spark等计算框架原理思考贯通？
 
+
+
+【】为什么Spark比MapReduce快？
+Spark计算比MapReduce快的根本原因在于DAG计算模型。（DAG实际是一个RDD关系图），DAG相比Hadoop的MapReduce在大多数情况下可以减少shuffle（洗牌）次数-比如数据转换等。
+Spark是基于内存的计算，所以快，这也不是主要原因，要对数据做计算，必然得加载到内存，Hadoop也是如此，
+只不过Spark支持将需要反复用到的数据给Cache到内存中，减少数据加载耗时，所以Spark跑机器学习算法比较在行（需要对数据进行反复迭代）
+
+Spark和MapReduce的计算都发生在内存中。
+MapReduce需要将每次计算的结果写入磁盘，然后再从磁盘读取数据，从而导致了频繁的磁盘IO。Spark通常不需要将计算的结果写入磁盘，
+可以在内存中进行迭代计算。这得益于Spark的RDD和DAG（有向无环图），其中DAG记录了job的stage以及在job执行过程中父RDD和子RDD之间的依赖关系。
+中间结果能够以RDD的形式存放在内存中，极大减少了磁盘IO。
+
+MapReduce在Shuffle时需要花费大量时间进行排序，排序在MapReduce的Shuffle中似乎是不可避免的；
+Spark在Shuffle时则只有部分场景才需要排序，支持基于Hash的分布式聚合，更加省时；
+
+
+
+
+
+
+
+【】Standalone模式（也依赖于机群）
+Standalone client
+    程序Driver运行在本地，服务会注册到master机群，Master根据submit脚本的资源需求找到内部资源至少可以启动一个Executor的所有Worker，
+    然后在这些Worker之间分配Executor，Worker上的Executor启动后会向Driver反向注册，所有的Executor注册完成后，
+    Driver开始执行main函数，之后执行到Action算子时，开始划分stage，每个stage生成对应的taskSet，之后将task分发到各个Executor上执行。
+Standalone Cluster
+    程序Driver运行在master指定的一个Worker上，任务拆分之后也是运行在注册的Worker上的Executor中。
+
+【】Mesoses,Yarn
+    Mesoses,Yarn这俩模式一样，都是用于分发和资源管理任务。
