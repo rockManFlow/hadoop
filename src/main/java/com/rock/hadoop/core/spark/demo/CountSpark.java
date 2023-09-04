@@ -19,17 +19,56 @@ public class CountSpark {
     private static final Pattern SPACE = Pattern.compile("");
 
     public static void main(String[] args) throws Exception {
-//        String osType = System.getProperty("os.name");
-//        System.out.println(osType);
-//        String[] paths=new String[2];
-//        paths[0]=osType.contains("Mac")?"/Users/opayc/products/hadoop/conf/int1.txt":"D:\\opayProduct\\hadoop\\conf\\int1.txt";
-//        paths[1]=osType.contains("Mac")?"/Users/opayc/products/hadoop/conf/out/spark":"D:\\opayProduct\\hadoop\\conf\\out\\spark";
+        String osType = System.getProperty("os.name");
+        System.out.println(osType);
+        String[] paths=new String[2];
+        paths[0]=osType.contains("Mac")?"/Users/opayc/products/hadoop/conf/int1.txt":"D:\\opayProduct\\hadoop\\conf\\int1.txt";
+        paths[1]=osType.contains("Mac")?"/Users/opayc/products/hadoop/conf/out/spark":"D:\\opayProduct\\hadoop\\conf\\out\\spark";
 //        javaWordCount(paths);
 
-        sortOperate();
+//        sortOperate();
+
+        statisticsWordCount(paths[0]);
     }
 
     /**
+     * 统计单词总个数
+     */
+    public static void statisticsWordCount(String filePath){
+        SparkConf sparkConf = new SparkConf().setAppName("statisticsWordCount").setMaster("local");
+        JavaSparkContext ctx = new JavaSparkContext(sparkConf);
+        JavaRDD<String> lines = ctx.textFile(filePath);
+        JavaRDD<String> splitRDD = lines.flatMap(new FlatMapFunction<String, String>() {
+            @Override
+            public Iterator<String> call(String s) throws Exception {
+                //进行word拆分
+                return Arrays.asList(SPACE.split(s)).iterator();
+            }
+        });
+
+        //当，某已RDD会被反复操作的时候，就需要缓存起来
+        splitRDD.cache();
+
+        List<String> excludeList = Arrays.asList(":", ",", "，", "。", "《", "》", "？", "！"," ","；");
+        //标点符号
+        JavaRDD<String> markRDD = splitRDD.filter(s -> excludeList.contains(s));
+        //除标点符号外的单词
+        JavaRDD<String> wordRDD = splitRDD.filter(s -> !excludeList.contains(s));
+
+        long markSum = markRDD.count();
+        long wordSum = wordRDD.count();
+
+        //在真正执行action的时候，再释放缓存
+        splitRDD.unpersist();
+
+        System.out.println("markSum:"+markSum);
+        System.out.println("wordSum:"+wordSum);
+
+        ctx.stop();
+    }
+
+    /**
+     * 内存中数据进行排序
      * ok
      */
     public static void sortOperate(){
@@ -65,6 +104,7 @@ public class CountSpark {
     }
 
     /**
+     * 统计各个字出现个数
      * ok
      * @param args
      * @throws Exception
@@ -137,7 +177,17 @@ public class CountSpark {
          *
          *  备注：spark也有reduce方法，输入数据是RDD类型就可以，不需要键值对，
          *  reduce方法会对输入进来的所有数据进行两两运算
-         */
+         *
+         *  reduceByKey需要进行shuffle操作
+         *  以 Shuffle 为边界，reduceByKey 的计算被切割为两个执行阶段。约定俗成地，我们把 Shuffle 之前的 Stage 叫作 Map 阶段，
+         *  而把 Shuffle 之后的 Stage 称作 Reduce 阶段。在 Map 阶段，每个 Executors 先把自己负责的数据分区做初步聚合（又叫 Map 端聚合、局部聚合）；
+         *  在 Shuffle 环节，不同的单词被分发到不同节点的 Executors 中；最后的 Reduce 阶段，Executors 以单词为 Key 做第二次聚合（又叫全局聚合），
+         *  从而完成统计计数的任务。
+         *
+         *  Stage会有多个task，在map阶段的每个task会生成中间文件，reduce阶段消费这些中间文件。
+         *
+         *
+         **/
         JavaPairRDD<String, Integer> counts = ones.reduceByKey(new Function2<Integer, Integer, Integer>() {
             //reduce阶段，key相同的value怎么处理的问题
 
