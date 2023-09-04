@@ -32,7 +32,7 @@ public class CountSpark {
     }
 
     /**
-     * 统计单词总个数
+     * 统计单词总个数ok
      */
     public static void statisticsWordCount(String filePath){
         SparkConf sparkConf = new SparkConf().setAppName("statisticsWordCount").setMaster("local");
@@ -57,6 +57,13 @@ public class CountSpark {
 
         long markSum = markRDD.count();
         long wordSum = wordRDD.count();
+
+        //打印具体信息
+        List<String> collect = markRDD.collect();
+        for(String m:collect){
+            System.out.print(m);
+        }
+        System.out.println();
 
         //在真正执行action的时候，再释放缓存
         splitRDD.unpersist();
