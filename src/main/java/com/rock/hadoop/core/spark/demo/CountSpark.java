@@ -28,7 +28,7 @@ public class CountSpark {
 
 //        sortOperate();
 
-        statisticsWordCount(paths[0]);
+        statisticsWordCount("hdfs://localhost:9000/input/infile/test_count_int1.txt");
     }
 
     /**

@@ -16,13 +16,16 @@ public class HdfsMain {
         //查询通过MapReduce计算的结果文件信息
 //        read("/input/outfile/test_count_int1_result.txt");
 
-        loadFileList("/input/outfile/test_count_int2");
+        read("/input/infile/test_count_int1.txt");
+
+//        write();
 //        String hdfsUrl="hdfs://127.0.0.1:9000";
 //        HdfsUtil hdfsUtil=new HdfsUtil(hdfsUrl);
 //        hdfsUtil.downloadFileByte("/input/outfile/test_count_int2");
     }
 
     /**
+     * hdfs dfsadmin -safemode leave  离开安全模式
      * ok
      * @throws IOException
      */
@@ -86,7 +89,7 @@ public class HdfsMain {
             if(i==-1){
                 break;
             }
-            hdfsUtil.createFile("/input/infile/test_count.txt",data);
+            hdfsUtil.createFile("/input/infile/test_count_int1.txt",data);
             data=new byte[1024];
         }
     }

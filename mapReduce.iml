@@ -199,7 +199,6 @@
     <orderEntry type="library" name="Maven: org.apache.hadoop:hadoop-client-runtime:3.3.4" level="project" />
     <orderEntry type="library" name="Maven: org.apache.spark:spark-launcher_2.13:3.4.1" level="project" />
     <orderEntry type="library" name="Maven: org.apache.spark:spark-kvstore_2.13:3.4.1" level="project" />
-    <orderEntry type="library" name="Maven: org.rocksdb:rocksdbjni:7.9.2" level="project" />
     <orderEntry type="library" name="Maven: org.apache.spark:spark-network-common_2.13:3.4.1" level="project" />
     <orderEntry type="library" name="Maven: com.google.crypto.tink:tink:1.7.0" level="project" />
     <orderEntry type="library" name="Maven: org.apache.spark:spark-network-shuffle_2.13:3.4.1" level="project" />
@@ -264,5 +263,37 @@
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-annotations:2.14.0" level="project" />
     <orderEntry type="library" name="Maven: com.thoughtworks.paranamer:paranamer:2.8" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-databind:2.14.0" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.spark:spark-sql_2.13:3.4.1" level="project" />
+    <orderEntry type="library" name="Maven: org.rocksdb:rocksdbjni:7.9.2" level="project" />
+    <orderEntry type="library" name="Maven: com.univocity:univocity-parsers:2.9.1" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.spark:spark-sketch_2.13:3.4.1" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.spark:spark-catalyst_2.13:3.4.1" level="project" />
+    <orderEntry type="library" name="Maven: org.scala-lang.modules:scala-parser-combinators_2.13:2.1.1" level="project" />
+    <orderEntry type="library" name="Maven: org.codehaus.janino:janino:3.1.9" level="project" />
+    <orderEntry type="library" name="Maven: org.codehaus.janino:commons-compiler:3.1.9" level="project" />
+    <orderEntry type="library" name="Maven: org.antlr:antlr4-runtime:4.9.3" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.arrow:arrow-vector:11.0.0" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.arrow:arrow-format:11.0.0" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.arrow:arrow-memory-core:11.0.0" level="project" />
+    <orderEntry type="library" name="Maven: com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.4" level="project" />
+    <orderEntry type="library" name="Maven: com.google.flatbuffers:flatbuffers-java:1.12.0" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.arrow:arrow-memory-netty:11.0.0" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.orc:orc-core:shaded-protobuf:1.8.4" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.orc:orc-shims:1.8.4" level="project" />
+    <orderEntry type="library" name="Maven: io.airlift:aircompressor:0.21" level="project" />
+    <orderEntry type="library" name="Maven: org.jetbrains:annotations:17.0.0" level="project" />
+    <orderEntry type="library" name="Maven: org.threeten:threeten-extra:1.7.1" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.orc:orc-mapreduce:shaded-protobuf:1.8.4" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.hive:hive-storage-api:2.8.1" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.parquet:parquet-column:1.12.3" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.parquet:parquet-common:1.12.3" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.parquet:parquet-encoding:1.12.3" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.parquet:parquet-hadoop:1.12.3" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.parquet:parquet-format-structures:1.12.3" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="Maven: org.apache.parquet:parquet-jackson:1.12.3" level="project" />
+    <orderEntry type="library" name="Maven: mysql:mysql-connector-java:5.1.24" level="project" />
+    <orderEntry type="library" name="Maven: com.alibaba:fastjson:2.0.39" level="project" />
+    <orderEntry type="library" name="Maven: com.alibaba.fastjson2:fastjson2-extension:2.0.39" level="project" />
+    <orderEntry type="library" name="Maven: com.alibaba.fastjson2:fastjson2:2.0.39" level="project" />
   </component>
 </module>
