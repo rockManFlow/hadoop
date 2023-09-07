@@ -33,18 +33,31 @@ public class KafkaConfig {
     public void buildConsumer(){
         //1.1: 指定消费者的配置信息
         Properties props = new Properties();
-        props.setProperty("bootstrap.servers", "localhost:9092");
+        props.setProperty("bootstrap.servers", "172.16.22.177:9092");
         props.setProperty("group.id", "test"); // 消费者组的名称
         props.setProperty("enable.auto.commit", "true"); // 消费者自定提交消费偏移量信息给kafka
         props.setProperty("auto.commit.interval.ms", "1000"); // 每次自动提交偏移量时间间隔  1s一次
         props.setProperty("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         props.setProperty("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
 
+        /**
+         * 组与组间的消费者是没有关系的。
+         * topic中已有分组消费数据，新建其他分组ID的消费者时，之前分组提交的offset对新建的分组消费不起作用。
+         *
+         * earliest
+         * 无提交时，各分区的offset从0开始消费。
+         * latest
+         * 最新开始消费。
+         * none
+         * 抛出NoOffsetForPartitionException异常。
+         */
+        props.setProperty("consumer.auto-offset-reset","earliest");
+
         //1. 创建kafka的消费者核心类对象:  KafkaConsumer
         KafkaConsumer<String, String> consumer = new KafkaConsumer<String, String>(props);
 
         //2. 让当前这个消费, 去监听那个topic?
-        consumer.subscribe(Arrays.asList("product-topic")); // 一个消费者 可以同时监听多个topic的操作
+        consumer.subscribe(Arrays.asList("test-example")); // 一个消费者 可以同时监听多个topic的操作
         while (true) { // 一致监听
             //3. 从topic中 获取数据操作:  参数表示意思, 如果队列中没有数据, 最长等待多长时间
             // 如果超时后, topic中依然没有数据, 此时返回空的  records(空对象)
@@ -55,5 +68,10 @@ public class KafkaConfig {
                 System.out.println("接收到消息为:"+value);
             }
         }
+    }
+
+    public static void main(String[] args) {
+        KafkaConfig kafkaConfig=new KafkaConfig();
+        kafkaConfig.buildConsumer();
     }
 }
