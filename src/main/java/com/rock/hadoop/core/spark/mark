@@ -43,6 +43,7 @@ hive是把sql翻译成mapreduce作业，mapreduce执行效率是不高的（当�
     yarn模式具体操作？？
 2、好的场景使用spark来构建项目？
 3、spark等计算框架原理思考贯通？
+4、spark从hdfs或者hive或hbase上来获取数据？
 
 
 

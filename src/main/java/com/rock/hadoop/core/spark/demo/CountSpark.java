@@ -28,6 +28,7 @@ public class CountSpark {
 
 //        sortOperate();
 
+        //连接hdfs中文件--OK
         statisticsWordCount("hdfs://localhost:9000/input/infile/test_count_int1.txt");
     }
 
@@ -221,6 +222,7 @@ public class CountSpark {
          * sort.saveAsNewAPIHadoopFile();
          * sort.saveAsHadoopFile();
          */
+        //或者保存到 hdfs中。hdfs://localhost:9000/input/infile/test_count_int1.txt
         //保存结果到文件
         resultSort.saveAsTextFile(args[1]);
 
