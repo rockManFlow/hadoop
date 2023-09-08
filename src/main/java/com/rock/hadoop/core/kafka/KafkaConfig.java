@@ -33,8 +33,8 @@ public class KafkaConfig {
     public void buildConsumer(){
         //1.1: 指定消费者的配置信息
         Properties props = new Properties();
-        props.setProperty("bootstrap.servers", "172.16.22.177:9092");
-        props.setProperty("group.id", "test"); // 消费者组的名称
+        props.setProperty("bootstrap.servers", "127.0.0.1:9092");
+        props.setProperty("group.id", "group-test"); // 消费者组的名称
         props.setProperty("enable.auto.commit", "true"); // 消费者自定提交消费偏移量信息给kafka
         props.setProperty("auto.commit.interval.ms", "1000"); // 每次自动提交偏移量时间间隔  1s一次
         props.setProperty("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
@@ -51,7 +51,7 @@ public class KafkaConfig {
          * none
          * 抛出NoOffsetForPartitionException异常。
          */
-        props.setProperty("consumer.auto-offset-reset","earliest");
+        props.setProperty("auto.offset.reset","earliest");
 
         //1. 创建kafka的消费者核心类对象:  KafkaConsumer
         KafkaConsumer<String, String> consumer = new KafkaConsumer<String, String>(props);
