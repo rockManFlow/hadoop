@@ -4,3 +4,9 @@
 
 2、reduce
 https://cloud.tencent.com/developer/article/1010720
+
+
+1、spark集群是什么样的？
+2、mapreduce+spark运行方式是什么样的？比如：拆分成各个子任务，并行运行
+凭什么使用这种框架可以处理大数据，优势是什么？
+3、大数据场景中mapreduce+spark正常的使用案例？

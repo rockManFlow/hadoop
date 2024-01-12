@@ -15,6 +15,11 @@ Master 节点与 Worker 节点分工不同, Master 负载管理全部的 Worker 
 
 Spark 支持不同的运行模式,包括Local, Standalone,Mesoses,Yarn 模式.不同的模式可能会将 Driver 调度到不同的节点上执行.
 
+集群管理器：
+Standalone： 这个集群管理器打包在 spark 的程序里，是最简单的集群管理器
+Mesoses：一个非常成熟的分布式操作系统，可以用来运行除 Spark 以外的很多系统。
+Yarn：Hadoop 的 资源管理器。
+
 ps:
 运行程序前得安装spark环境，由于是使用Scala编写的，仅是提供了java API的接口，具体的执行还是得Scala程序来运行，因此需要先安装。---验证不安装也可以本地运行
 

@@ -24,12 +24,12 @@ public class CountSpark {
         String[] paths=new String[2];
         paths[0]=osType.contains("Mac")?"/Users/opayc/products/hadoop/conf/int1.txt":"D:\\opayProduct\\hadoop\\conf\\int1.txt";
         paths[1]=osType.contains("Mac")?"/Users/opayc/products/hadoop/conf/out/spark":"D:\\opayProduct\\hadoop\\conf\\out\\spark";
-//        javaWordCount(paths);
+        javaWordCount(paths);
 
 //        sortOperate();
 
         //连接hdfs中文件--OK
-        statisticsWordCount("hdfs://localhost:9000/input/infile/test_count_int1.txt");
+//        statisticsWordCount("hdfs://localhost:9000/input/infile/test_count_int1.txt");
     }
 
     /**
@@ -42,7 +42,7 @@ public class CountSpark {
         JavaRDD<String> splitRDD = lines.flatMap(new FlatMapFunction<String, String>() {
             @Override
             public Iterator<String> call(String s) throws Exception {
-                //进行word拆分
+                //进行word拆分--拆成一个一个单词
                 return Arrays.asList(SPACE.split(s)).iterator();
             }
         });
