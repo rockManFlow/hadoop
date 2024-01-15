@@ -1,5 +1,8 @@
 package com.rock.hadoop.core.practical;
 
+import com.alibaba.fastjson.JSON;
+import com.rock.hadoop.core.utils.DateTimeUtil;
+import lombok.Data;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.spark.SparkConf;
@@ -12,6 +15,9 @@ import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.PairFunction;
 import scala.Tuple2;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -60,71 +66,53 @@ public class LogMain {
             }
         });
 
-        //包括的URI集合
-        List<String> includeUriList = Arrays.asList("/api/card/info");
-        JavaRDD<String> words = lines.flatMap(new FlatMapFunction<String, String>() {
+        //转成指定实体类rdd
+        JavaRDD<LogInfo> logInfoRDD = filterRdd.map(new Function<String, LogInfo>() {
             @Override
-            public Iterator<String> call(String s) {
-                return Arrays.asList("SPACE".split(s)).stream().filter(c->!excludeList.contains(c)).iterator();
+            public LogInfo call(String s) throws Exception {
+                return JSON.parseObject(s, LogInfo.class);
             }
         });
-        /**
-         * 输出map 键值对 ，类似于MR的map方法
-         * pairFunction<T,K,V>: T:输入类型；K,V：输出键值对
-         * 表示输入类型为T,生成的key-value对中的key类型为k,value类型为v,对本例,T=String, K=String, V=Integer(计数)
-         * 需要重写call方法实现转换
-         */
-        JavaPairRDD<String, Integer> ones = words.mapToPair(new PairFunction<String, String, Integer>() {
-            //scala.Tuple2<K,V> call(T t)
-            //Tuple2为scala中的一个对象,call方法的输入参数为T,即输入一个单词s,新的Tuple2对象的key为这个单词,计数为1
-            @Override
-            public Tuple2<String, Integer> call(String s) {
-                return new Tuple2<String, Integer>(s, 1);
-            }
-        });
-        //A two-argument function that takes arguments
-        // of type T1 and T2 and returns an R.
-        /**
-         * 调用reduceByKey方法,按key值进行reduce（减少）
-         *  reduceByKey方法，类似于MR的reduce
-         *  要求被操作的数据（即下面实例中的ones）是KV键值对形式，该方法会按照key相同的进行聚合，在两两运算
-         *  例如：ones有<"one", 1>, <"one", 1>,会根据"one"将相同的pair单词个数进行统计,输入为Integer,输出也为Integer
-         *输出<"one", 2>
-         *
-         *  备注：spark也有reduce方法，输入数据是RDD类型就可以，不需要键值对，
-         *  reduce方法会对输入进来的所有数据进行两两运算
-         *
-         *  reduceByKey需要进行shuffle操作
-         *  以 Shuffle 为边界，reduceByKey 的计算被切割为两个执行阶段。约定俗成地，我们把 Shuffle 之前的 Stage 叫作 Map 阶段，
-         *  而把 Shuffle 之后的 Stage 称作 Reduce 阶段。在 Map 阶段，每个 Executors 先把自己负责的数据分区做初步聚合（又叫 Map 端聚合、局部聚合）；
-         *  在 Shuffle 环节，不同的单词被分发到不同节点的 Executors 中；最后的 Reduce 阶段，Executors 以单词为 Key 做第二次聚合（又叫全局聚合），
-         *  从而完成统计计数的任务。
-         *
-         *  Stage会有多个task，在map阶段的每个task会生成中间文件，reduce阶段消费这些中间文件。
-         *
-         *
-         **/
-        JavaPairRDD<String, Integer> counts = ones.reduceByKey(new Function2<Integer, Integer, Integer>() {
-            //reduce阶段，key相同的value怎么处理的问题
 
+        //转换成指定数据结构
+        JavaPairRDD<String, Long> timeJavaPairRDD = logInfoRDD.mapToPair(new PairFunction<LogInfo, String, Long>() {
+            @Override
+            public Tuple2<String, Long> call(LogInfo logInfo) throws Exception {
+                String uri = "";
+                String message = logInfo.getMessage();
+                if (StringUtils.isNotBlank(message)) {
+                    String[] msgArray = message.split(" ");
+                    if (msgArray.length > 0) {
+                        uri = msgArray[0];
+                    }
+                }
+                String key = uri + "#"+logInfo.getContextMap();
+                LocalDateTime localDateTime = DateTimeUtil.parseStrToUtcTime(logInfo.getLogTime());
+                return new Tuple2<String, Long>(key, localDateTime.toInstant(ZoneOffset.UTC).toEpochMilli());
+            }
+        });
+
+        //计算两个相同请求key对应的请求时间差值
+        JavaPairRDD<String, Long> sameReqUriCostRDD = timeJavaPairRDD.reduceByKey(new Function2<Long, Long, Long>() {
+            //reduce阶段，key相同的value怎么处理的问题
             /**
-             *
-             * @param i1 为相同key的其中一个value
-             * @param i2 为相同key的另外一个value
+             * @param one1 为相同key的其中一个value
+             * @param one2 为相同key的另外一个value
              * @return 分组处理之后的值
              */
             @Override
-            public Integer call(Integer i1, Integer i2) {
-                return i1 + i2;
+            public Long call(Long one1, Long one2) {
+                return (one1-one2)>0?(one1-one2):(one2-one1);
             }
         });
 
+
         // 交换key，再排序--元数据key-value进行交换
-        JavaPairRDD<Integer, String> dataSwap = counts.mapToPair(tp -> tp.swap());
+        JavaPairRDD<Long, String> dataSwap = sameReqUriCostRDD.mapToPair(tp -> tp.swap());
         //通过交换后的value-key通过value进行降序排序
-        JavaPairRDD<Integer, String> dataSort = dataSwap.sortByKey(false);
+        JavaPairRDD<Long, String> dataSort = dataSwap.sortByKey(false);
         //排完序的元数据，再交换回来
-        JavaPairRDD<String, Integer> resultSort = dataSort.mapToPair(tp -> tp.swap());
+        JavaPairRDD<String, Long> resultSort = dataSort.mapToPair(tp -> tp.swap());
 
         /**
          * sort.saveAsNewAPIHadoopFile();
@@ -138,7 +126,7 @@ public class LogMain {
          * 聚合
          * collect方法用于将spark的RDD类型转化为我们熟知的java常见类型
          */
-        List<Tuple2<String, Integer>> output = resultSort.collect();
+        List<Tuple2<String, Long>> output = resultSort.collect();
         for (Tuple2<?,?> tuple : output) {
             System.out.println(tuple._1() + ": " + tuple._2());
         }
@@ -155,5 +143,14 @@ public class LogMain {
             }
         }
         return false;
+    }
+
+    @Data
+    public static class LogInfo{
+        private String logTime;
+        private String message;
+        private String level;
+        private String contextMap;
+        private String traceId;
     }
 }
