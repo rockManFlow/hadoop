@@ -1,136 +1,29 @@
-package com.rock.hadoop.core.spark.demo;
+package com.rock.hadoop.core.practical;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.*;
+import org.apache.spark.api.java.function.FlatMapFunction;
+import org.apache.spark.api.java.function.Function;
+import org.apache.spark.api.java.function.Function2;
+import org.apache.spark.api.java.function.PairFunction;
 import scala.Tuple2;
 
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.regex.Pattern;
 
 /**
- * 计算指定文件中各个字符出现的次数并从大到小排序输出
+ * @author rock
+ * @detail
+ * @date 2024/1/15 16:13
  */
-public class CountSpark {
-    private static final Pattern SPACE = Pattern.compile("");
-
-    public static void main(String[] args) throws Exception {
-        String osType = System.getProperty("os.name");
-        System.out.println(osType);
-        String[] paths=new String[2];
-        paths[0]=osType.contains("Mac")?"/Users/opayc/products/hadoop/conf/int1.txt":"D:\\opayProduct\\hadoop\\conf\\int1.txt";
-        paths[1]=osType.contains("Mac")?"/Users/opayc/products/hadoop/conf/out/spark":"D:\\opayProduct\\hadoop\\conf\\out\\spark";
-//        javaWordCount(paths);
-
-//        sortOperate();
-
-        //连接hdfs中文件--OK
-//        statisticsWordCount("hdfs://localhost:9000/input/infile/test_count_int1.txt");
-        statisticsWordCount("D:\\opayProduct\\hadoop\\conf\\kill_bird.txt");
-    }
-
-    /**
-     * 统计单词总个数ok
-     */
-    public static void statisticsWordCount(String filePath){
-        SparkConf sparkConf = new SparkConf().setAppName("statisticsWordCount").setMaster("local");
-        JavaSparkContext ctx = new JavaSparkContext(sparkConf);
-        JavaRDD<String> lines = ctx.textFile(filePath);
-        JavaRDD<String> splitRDD = lines.flatMap(new FlatMapFunction<String, String>() {
-            @Override
-            public Iterator<String> call(String s) throws Exception {
-                //进行word拆分--拆成一个一个单词
-                return Arrays.asList(SPACE.split(s)).iterator();
-            }
-        });
-
-        //当，某已RDD会被反复操作的时候，就需要缓存起来
-        splitRDD.cache();
-
-        List<String> excludeList = Arrays.asList(":", ",", "，", "。", "《", "》", "？", "！"," ","；");
-        //标点符号
-        JavaRDD<String> markRDD = splitRDD.filter(s -> excludeList.contains(s));
-        //除标点符号外的单词
-        JavaRDD<String> wordRDD = splitRDD.filter(s -> !excludeList.contains(s));
-
-        long markSum = markRDD.count();
-        long wordSum = wordRDD.count();
-
-        //打印具体信息
-        List<String> collect = markRDD.collect();
-        for(String m:collect){
-            System.out.print(m);
-        }
-        System.out.println();
-
-        //在真正执行action的时候，再释放缓存
-        splitRDD.unpersist();
-
-        System.out.println("markSum:"+markSum);
-        System.out.println("wordSum:"+wordSum);
-
-        ctx.stop();
-    }
-
-    /**
-     * 内存中数据进行排序
-     * ok
-     */
-    public static void sortOperate(){
-        SparkConf sparkConf = new SparkConf().setAppName("base").setMaster("local");
-        JavaSparkContext ctx = new JavaSparkContext(sparkConf);
-        //从内存集合中创建RDD
-        JavaRDD<String> javaRDD = ctx.parallelize(Arrays.asList("111", "222", "333","888","777","222"));
-
-        //String转换Long
-        JavaRDD<Long> parseMapRDD = javaRDD.map(new Function<String, Long>() {
-            @Override
-            public Long call(String s) throws Exception {
-                return Long.parseLong(s);
-            }
-        });
-
-
-        //进行排序
-        JavaRDD<Long> sortRDD = parseMapRDD.sortBy(new Function<Long, Long>() {
-
-            @Override
-            public Long call(Long s) throws Exception {
-                return s;
-            }
-        }, false, 2);
-
-        //聚合输出
-        List<Long> collect = sortRDD.collect();
-        for(Long d:collect){
-            System.out.println(d);
-        }
-
-    }
-
-    /**
-     * 统计各个字出现个数
-     * ok
-     * @param args
-     * @throws Exception
-     */
-    public static void javaWordCount(String[] args) throws Exception {
-        if (args.length < 1) {
-            System.err.println("Usage: JavaWordCount <file>");
-            System.exit(1);
-        }
-
-        /**
-         * 对于所有的spark程序所言，要进行所有的操作，首先要创建一个spark上下文。
-         * 在创建上下文的过程中，程序会向集群申请资源及构建相应的运行环境。
-         * 设置spark应用程序名称
-         * 创建的 sarpkContext 唯一需要的参数就是 sparkConf，它是一组 K-V 属性对。
-         */
-        SparkConf sparkConf = new SparkConf().setAppName("JavaWordCount").setMaster("local");
+public class LogMain {
+    public static void main(String[] args) {
+        SparkConf sparkConf = new SparkConf().setAppName("ApiCost").setMaster("local");
         JavaSparkContext ctx = new JavaSparkContext(sparkConf);
 
         /**
@@ -154,11 +47,25 @@ public class CountSpark {
         //flatMap与map的区别是，对每个输入，flatMap会生成一个或多个的输出，而map只是生成单一的输出
         //用空格分割各个单词,输入一行,输出多个对象,所以用flatMap
 
-        List<String> excludeList = Arrays.asList(":", ",", "，", "。", "《", "》", "？", "！"," ","；");
+        //包括指定信息
+        List<String> includeList = Arrays.asList("@P", "@R");
+        //过滤需要的信息
+        JavaRDD<String> filterRdd = lines.filter(new Function<String, Boolean>() {
+            @Override
+            public Boolean call(String s) throws Exception {
+                if (StringUtils.isNotBlank(s) && containsAll(s, includeList)) {
+                    return true;
+                }
+                return false;
+            }
+        });
+
+        //包括的URI集合
+        List<String> includeUriList = Arrays.asList("/api/card/info");
         JavaRDD<String> words = lines.flatMap(new FlatMapFunction<String, String>() {
             @Override
             public Iterator<String> call(String s) {
-                return Arrays.asList(SPACE.split(s)).stream().filter(c->!excludeList.contains(c)).iterator();
+                return Arrays.asList("SPACE".split(s)).stream().filter(c->!excludeList.contains(c)).iterator();
             }
         });
         /**
@@ -238,16 +145,15 @@ public class CountSpark {
         ctx.stop();
     }
 
-    /**
-     * RDD 函数解释
-     * filter：的时候会过滤掉那些返回只为false的数据
-     * lines.collect();  List<String>
-     * lines.union();    javaRDD<String>
-     * lines.top(1);     List<String>
-     * lines.count();    long
-     * lines.countByValue();
-     * lines.cache();   //暂时放在缓存中，一般用于哪些可能需要多次使用的RDD，据说这样会减少运行时间
-     * counts.sortByKey();  通过key进行排序
-     * collect：该方法用于将spark的RDD类型转化为我们熟知的java常见类型
-     */
+    private static Boolean containsAll(String line,List<String> list){
+        if(CollectionUtils.isNotEmpty(list)){
+            for(String containsKey:list){
+                boolean result = line.contains(containsKey);
+                if(Boolean.TRUE.equals(result)){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 }
