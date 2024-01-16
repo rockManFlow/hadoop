@@ -75,6 +75,21 @@
             <version>3.4.1</version>
         </dependency>
 
+        <!--spark streaming-->
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-streaming_2.13</artifactId>
+            <version>3.4.1</version>
+        </dependency>
+
+        <!--spark streaming kafka-->
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-streaming-kafka-0-10_2.13</artifactId>
+            <version>3.4.1</version>
+        </dependency>
+
+
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-yaml</artifactId>
