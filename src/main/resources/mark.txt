@@ -16,10 +16,10 @@ Flume Cloudera 提供的一个高可用、高可靠、分布式的海量日志�
 Hive：建立在Hadoop 体系结构上的一层 SQL 抽象。主流离线数据处理工具。 数据仓库工具：可以接收sql，翻译成mapreduce或者spark程序运行。
 MapReduce、Hive 只支持批处理任务
 spark：批处理
-Spark Streaming：流式处理
+Spark Streaming：流式处理（准实时-0.5到2秒处理速度）
 spark sql:
 Flink：流式处理
-storm：只支持流处理任务。
+storm：只支持流处理任务(实时)。--Storm 目前最小的延迟是100ms 左右
 
 【】存储
 hdfs:

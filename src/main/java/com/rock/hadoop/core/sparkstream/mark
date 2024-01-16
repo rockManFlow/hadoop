@@ -1,0 +1,112 @@
+Spark Streaming（准实时的响应--处理速度维持在秒级）
+在内部的处理机制是，接收实时流的数据，并根据一定的时间间隔拆分成一批批的数据，
+然后通过Spark Engine处理这些批数据，最终得到处理后的一批批结果数据。
+
+对应的批数据，在Spark内核对应一个RDD实例，因此，对应流数据的DStream可以看成是一组RDDs，即RDD的一个序列。
+通俗点理解的话，在流数据分成一批一批后，通过一个先进先出的队列，然后 Spark Engine从该队列中依次取出一个个批数据，
+把批数据封装成一个RDD，然后进行处理，这是一个典型的生产者消费者模型，对应的就有生产者消费者模型的问题，即如何协调生产速率和消费速率。
+
+【】Storm与Spark Streming比较
+l处理模型以及延迟
+
+虽然两框架都提供了可扩展性(scalability)和可容错性(fault tolerance)，但是它们的处理模型从根本上说是不一样的。Storm可以实现亚秒级时延的处理，而每次只处理一条event，而Spark Streaming可以在一个短暂的时间窗口里面处理多条(batches)Event。所以说Storm可以实现亚秒级时延的处理，而Spark Streaming则有一定的时延。
+
+l容错和数据保证
+
+然而两者的代价都是容错时候的数据保证，Spark Streaming的容错为有状态的计算提供了更好的支持。在Storm中，每条记录在系统的移动过程中都需要被标记跟踪，所以Storm只能保证每条记录最少被处理一次，但是允许从错误状态恢复时被处理多次。这就意味着可变更的状态可能被更新两次从而导致结果不正确。
+
+任一方面，Spark Streaming仅仅需要在批处理级别对记录进行追踪，所以他能保证每个批处理记录仅仅被处理一次，即使是node节点挂掉。虽然说Storm的 Trident library可以保证一条记录被处理一次，但是它依赖于事务更新状态，而这个过程是很慢的，并且需要由用户去实现。
+
+l实现和编程API
+
+Storm主要是由Clojure语言实现，Spark Streaming是由Scala实现。如果你想看看这两个框架是如何实现的或者你想自定义一些东西你就得记住这一点。Storm是由BackType和 Twitter开发，而Spark Streaming是在UC Berkeley开发的。
+
+Storm提供了Java API，同时也支持其他语言的API。 Spark Streaming支持Scala和Java语言(其实也支持Python)。
+
+l批处理框架集成
+
+Spark Streaming的一个很棒的特性就是它是在Spark框架上运行的。这样你就可以想使用其他批处理代码一样来写Spark Streaming程序，或者是在Spark中交互查询。这就减少了单独编写流批量处理程序和历史数据处理程序。
+
+l生产支持
+
+Storm已经出现好多年了，而且自从2011年开始就在Twitter内部生产环境中使用，还有其他一些公司。而Spark Streaming是一个新的项目，并且在2013年仅仅被Sharethrough使用(据作者了解)。
+
+Storm是 Hortonworks Hadoop数据平台中流处理的解决方案，而Spark Streaming出现在 MapR的分布式平台和Cloudera的企业数据平台中。除此之外，Databricks是为Spark提供技术支持的公司，包括了Spark Streaming。
+
+虽然说两者都可以在各自的集群框架中运行，但是Storm可以在Mesos上运行, 而Spark Streaming可以在YARN和Mesos上运行。
+
+【】计算流程
+Spark Streaming是将流式计算分解成一系列短小的批处理作业。这里的批处理引擎是Spark Core，
+也就是把Spark Streaming的输入数据按照batch size（如1秒）分成一段一段的数据（Discretized Stream），
+每一段数据都转换成Spark中的RDD（Resilient Distributed Dataset），
+然后将Spark Streaming中对DStream的Transformation操作变为针对Spark中对RDD的Transformation操作，将RDD经过操作变成中间结果保存在内存中。
+整个流式计算根据业务的需求可以对中间的结果进行叠加或者存储到外部设备。
+
+【】容错性
+对于流式计算来说，容错性至关重要。首先我们要明确一下Spark中RDD的容错机制。每一个RDD都是一个不可变的分布式可重算的数据集，
+其记录着确定性的操作继承关系（lineage），所以只要输入数据是可容错的，那么任意一个RDD的分区（Partition）出错或不可用，
+都是可以利用原始输入数据通过转换操作而重新算出的。
+
+【】实时性：对于实时性的讨论，会牵涉到流式处理框架的应用场景。Spark Streaming将流式计算分解成多个Spark Job，
+对于每一段数据的处理都会经过Spark DAG图分解以及Spark的任务集的调度过程。
+对于目前版本的Spark Streaming而言，其最小的Batch Size的选取在0.5~2秒钟之间（Storm目前最小的延迟是100ms左右），
+所以Spark Streaming能够满足除对实时性要求非常高（如高频实时交易）之外的所有流式准实时计算场景。
+
+【】扩展性与吞吐量：Spark目前在EC2上已能够线性扩展到100个节点（每个节点4Core），可以以数秒的延迟处理6GB/s的数据量（60M records/s），
+其吞吐量也比流行的Storm高2～5倍。
+
+
+======api=======
+
+map(func)
+
+源 DStream的每个元素通过函数func返回一个新的DStream。
+
+flatMap(func)
+
+类似与map操作，不同的是每个输入元素可以被映射出0或者更多的输出元素。
+
+filter(func)
+
+在源DSTREAM上选择Func函数返回仅为true的元素,最终返回一个新的DSTREAM 。
+
+repartition(numPartitions)
+
+通过输入的参数numPartitions的值来改变DStream的分区大小。
+
+union(otherStream)
+
+返回一个包含源DStream与其他 DStream的元素合并后的新DSTREAM。
+
+count()
+
+对源DStream内部的所含有的RDD的元素数量进行计数，返回一个内部的RDD只包含一个元素的DStreaam。
+
+reduce(func)
+
+使用函数func（有两个参数并返回一个结果）将源DStream 中每个RDD的元素进行聚 合操作,返回一个内部所包含的RDD只有一个元素的新DStream。
+
+countByValue()
+
+计算DStream中每个RDD内的元素出现的频次并返回新的DStream[(K,Long)]，其中K是RDD中元素的类型，Long是元素出现的频次。
+
+reduceByKey(func, [numTasks])
+
+当一个类型为（K，V）键值对的DStream被调用的时候,返回类型为类型为（K，V）键值对的新 DStream,其中每个键的值V都是使用聚合函数func汇总。注意：默认情况下，使用 Spark的默认并行度提交任务（本地模式下并行度为2，集群模式下位8），可以通过配置numTasks设置不同的并行任务数。
+
+join(otherStream, [numTasks])
+
+当被调用类型分别为（K，V）和（K，W）键值对的2个DStream 时，返回类型为（K，（V，W））键值对的一个新 DSTREAM。
+
+cogroup(otherStream, [numTasks])
+
+当被调用的两个DStream分别含有(K, V) 和(K, W)键值对时,返回一个(K, Seq[V], Seq[W])类型的新的DStream。
+
+transform(func)
+
+通过对源DStream的每RDD应用RDD-to-RDD函数返回一个新的DStream，这可以用来在DStream做任意RDD操作。
+
+updateStateByKey(func)
+
+返回一个新状态的DStream,其中每个键的状态是根据键的前一个状态和键的新值应用给定函数func后的更新。这个方法可以被用来维持每个键的任何状态数据。
+
