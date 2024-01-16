@@ -5,6 +5,7 @@ import java.time.format.DateTimeFormatter;
 
 public class DateTimeUtil {
     public static final String UTC_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+    public static final String UTC_PATTERN_2= "yyyy-MM-dd'T'HH:mm:ss'Z'";
 
     public static LocalDateTime parseStrToUtcTime(String time){
         DateTimeFormatter df = DateTimeFormatter.ofPattern(UTC_PATTERN);
