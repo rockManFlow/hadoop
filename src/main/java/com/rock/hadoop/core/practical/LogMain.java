@@ -25,7 +25,7 @@ import java.util.*;
 import scala.collection.JavaConverters.*;
 /**
  * @author rock
- * @detail
+ * @detail 日志分析，挑选出指定接口调用耗时
  * @date 2024/1/15 16:13
  */
 @Slf4j
@@ -236,9 +236,20 @@ public class LogMain {
             }
         });
 
+        //过滤非指定格式数据
+        JavaPairRDD<String, Long> filterIllegalDataRDD = sameReqUriCostRDD.filter(new Function<Tuple2<String, Long>, Boolean>() {
+            @Override
+            public Boolean call(Tuple2<String, Long> stringLongTuple2) throws Exception {
+                if (stringLongTuple2._2 > 1000000L || stringLongTuple2._2 <= 0) {
+                    return false;
+                }
+                return true;
+            }
+        });
+
 
         // 交换key，再排序--元数据key-value进行交换
-        JavaPairRDD<Long, String> dataSwap = sameReqUriCostRDD.mapToPair(tp -> tp.swap());
+        JavaPairRDD<Long, String> dataSwap = filterIllegalDataRDD.mapToPair(tp -> tp.swap());
         //通过交换后的value-key通过value进行降序排序
         JavaPairRDD<Long, String> dataSort = dataSwap.sortByKey(false);
         //排完序的元数据，再交换回来
