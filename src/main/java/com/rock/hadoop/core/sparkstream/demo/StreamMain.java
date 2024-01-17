@@ -25,7 +25,11 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 从不同输入源来获取数据--需要引入不同源包
- * 数据可以从Kafka，Flume， Kinesis， 或TCP Socket来源获得
+ * 数据可以从Kafka，Flume， Kinesis， 或TCP Socket，HDFS（Hadoop分布式文件系统，Spark Streaming可以将数据从HDFS中读取并处理为实时数据流）来源获得。
+ * 这些都是目前已有包支持的
+ *
+ * Custom Stream Sources：除了上述提到的数据源外，Spark Streaming还支持自定义数据源的开发，这意味着可以从任何提供特定接口的数据源中获取实时数据。
+ *
  */
 @Slf4j
 public class StreamMain {
