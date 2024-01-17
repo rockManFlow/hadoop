@@ -6,32 +6,53 @@ Spark Streaming（准实时的响应--处理速度维持在秒级）
 通俗点理解的话，在流数据分成一批一批后，通过一个先进先出的队列，然后 Spark Engine从该队列中依次取出一个个批数据，
 把批数据封装成一个RDD，然后进行处理，这是一个典型的生产者消费者模型，对应的就有生产者消费者模型的问题，即如何协调生产速率和消费速率。
 
+【】问题
+问题1：Spark Streaming实时流处理框架每隔指定间隔获取一次数据，一个间隔获取的数据会不会因为不全导致问题？
+数据丢失：如果一个时间间隔内的数据不完整或丢失，Spark Streaming默认会从其数据源中重新拉取这些丢失的数据。因此，除非数据源本身存在问题或网络中断，否则Spark Streaming通常能够确保每个时间间隔内的数据完整性。
+数据量问题：如果某个时间间隔的数据量非常大，可能会导致内存不足或网络拥堵。您可以通过调整Spark Streaming的缓冲区大小、批处理大小等参数来控制处理的数据量。
+数据处理逻辑：您的数据处理逻辑需要能够处理不同大小和格式的数据。例如，如果您依赖于特定时间间隔内的所有数据来进行某些计算，那么缺失的数据可能会导致计算结果不准确。
+业务需求：某些业务场景可能对数据的实时性和完整性有更高的要求。在这种情况下，您可能需要考虑使用其他技术或工具来确保数据的完整性和实时性。
+总之，Spark Streaming的设计初衷是为了处理实时数据流，并尽量确保数据的完整性和实时性。但在实际应用中，您仍然需要根据具体的业务需求和数据处理逻辑来进行调整和优化。
+
+总之需要程序自己兼容处理，肯定会有不全的数据。
+
+
+
+
+
+
+
+
 【】Storm与Spark Streming比较
-l处理模型以及延迟
+【】处理模型以及延迟
+虽然两框架都提供了可扩展性(scalability)和可容错性(fault tolerance)，但是它们的处理模型从根本上说是不一样的。
+Storm可以实现亚秒级时延的处理，而每次只处理一条event，而Spark Streaming可以在一个短暂的时间窗口里面处理多条(batches)Event。
+所以说Storm可以实现亚秒级时延的处理，而Spark Streaming则有一定的时延。
 
-虽然两框架都提供了可扩展性(scalability)和可容错性(fault tolerance)，但是它们的处理模型从根本上说是不一样的。Storm可以实现亚秒级时延的处理，而每次只处理一条event，而Spark Streaming可以在一个短暂的时间窗口里面处理多条(batches)Event。所以说Storm可以实现亚秒级时延的处理，而Spark Streaming则有一定的时延。
+【】容错和数据保证
+然而两者的代价都是容错时候的数据保证，Spark Streaming的容错为有状态的计算提供了更好的支持。
+在Storm中，每条记录在系统的移动过程中都需要被标记跟踪，所以Storm只能保证每条记录最少被处理一次，但是允许从错误状态恢复时被处理多次。
+这就意味着可变更的状态可能被更新两次从而导致结果不正确。
 
-l容错和数据保证
+任一方面，Spark Streaming仅仅需要在批处理级别对记录进行追踪，所以他能保证每个批处理记录仅仅被处理一次，即使是node节点挂掉。
+虽然说Storm的 Trident library可以保证一条记录被处理一次，但是它依赖于事务更新状态，而这个过程是很慢的，并且需要由用户去实现。
 
-然而两者的代价都是容错时候的数据保证，Spark Streaming的容错为有状态的计算提供了更好的支持。在Storm中，每条记录在系统的移动过程中都需要被标记跟踪，所以Storm只能保证每条记录最少被处理一次，但是允许从错误状态恢复时被处理多次。这就意味着可变更的状态可能被更新两次从而导致结果不正确。
-
-任一方面，Spark Streaming仅仅需要在批处理级别对记录进行追踪，所以他能保证每个批处理记录仅仅被处理一次，即使是node节点挂掉。虽然说Storm的 Trident library可以保证一条记录被处理一次，但是它依赖于事务更新状态，而这个过程是很慢的，并且需要由用户去实现。
-
-l实现和编程API
-
-Storm主要是由Clojure语言实现，Spark Streaming是由Scala实现。如果你想看看这两个框架是如何实现的或者你想自定义一些东西你就得记住这一点。Storm是由BackType和 Twitter开发，而Spark Streaming是在UC Berkeley开发的。
+【】实现和编程API
+Storm主要是由Clojure语言实现，Spark Streaming是由Scala实现。如果你想看看这两个框架是如何实现的或者你想自定义一些东西你就得记住这一点。
+Storm是由BackType和 Twitter开发，而Spark Streaming是在UC Berkeley开发的。
 
 Storm提供了Java API，同时也支持其他语言的API。 Spark Streaming支持Scala和Java语言(其实也支持Python)。
 
-l批处理框架集成
+【】批处理框架集成
+Spark Streaming的一个很棒的特性就是它是在Spark框架上运行的。这样你就可以想使用其他批处理代码一样来写Spark Streaming程序，
+或者是在Spark中交互查询。这就减少了单独编写流批量处理程序和历史数据处理程序。
 
-Spark Streaming的一个很棒的特性就是它是在Spark框架上运行的。这样你就可以想使用其他批处理代码一样来写Spark Streaming程序，或者是在Spark中交互查询。这就减少了单独编写流批量处理程序和历史数据处理程序。
+【】生产支持
+Storm已经出现好多年了，而且自从2011年开始就在Twitter内部生产环境中使用，还有其他一些公司。而Spark Streaming是一个新的项目，
+并且在2013年仅仅被Sharethrough使用(据作者了解)。
 
-l生产支持
-
-Storm已经出现好多年了，而且自从2011年开始就在Twitter内部生产环境中使用，还有其他一些公司。而Spark Streaming是一个新的项目，并且在2013年仅仅被Sharethrough使用(据作者了解)。
-
-Storm是 Hortonworks Hadoop数据平台中流处理的解决方案，而Spark Streaming出现在 MapR的分布式平台和Cloudera的企业数据平台中。除此之外，Databricks是为Spark提供技术支持的公司，包括了Spark Streaming。
+Storm是 Hortonworks Hadoop数据平台中流处理的解决方案，而Spark Streaming出现在 MapR的分布式平台和Cloudera的企业数据平台中。
+除此之外，Databricks是为Spark提供技术支持的公司，包括了Spark Streaming。
 
 虽然说两者都可以在各自的集群框架中运行，但是Storm可以在Mesos上运行, 而Spark Streaming可以在YARN和Mesos上运行。
 

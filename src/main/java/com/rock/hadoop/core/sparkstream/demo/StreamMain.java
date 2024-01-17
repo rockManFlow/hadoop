@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 从不同输入源来获取数据--需要引入不同源包
+ * 数据可以从Kafka，Flume， Kinesis， 或TCP Socket来源获得
  */
 public class StreamMain {
     public static void main(String[] args) throws InterruptedException {
@@ -169,28 +170,28 @@ public class StreamMain {
 
         JavaStreamingContext streamingContext = new JavaStreamingContext(config, Seconds.apply(3)); //3 秒钟，伴生对象，不需要new
 
-        //从指定的端口中采集数据
-        JavaReceiverInputDStream<String> socketLineStreaming = streamingContext.socketTextStream("leizuquandeMacBook-Air.local", 9999);//一行一行的接受
+        //从指定的端口中采集数据--从socket源获取数据
+        JavaReceiverInputDStream<String> socketLineStreaming = streamingContext.socketTextStream("127.0.0.1", 9999);//一行一行的接受
 
-        //将采集的数据进行分解（偏平化）
+        //将采集的数据进行分解--拆分成单词
         JavaDStream<String> wordDStream = socketLineStreaming.flatMap( (String line) ->{
             String[] split = line.split(" ");
             return Arrays.asList(split).iterator();
         });
 
-        //将我们的数据进行转换方便分析
-        JavaDStream<Tuple2<String, Integer>> mapDstream = wordDStream.map(word -> new Tuple2<String, Integer>(word, 1));
-
-        //将转换后的数据聚合在一起处理
-        JavaDStream<Tuple2<String, Integer>> wordToSumStream = mapDstream.reduce(
-                (t1, t2) -> {
-                    return new Tuple2<>(t1._1, t1._2 + t2._2);
-                });
+        //计算每个单词出现的个数
+        JavaPairDStream<String, Integer> wordCounts = wordDStream.mapToPair(new PairFunction<String, String, Integer>() {
+            public Tuple2<String, Integer> call(String s) throws Exception {
+                return new Tuple2<String, Integer>(s, 1);
+            }
+        }).reduceByKey(new Function2<Integer, Integer, Integer>() {
+            public Integer call(Integer integer, Integer integer2) throws Exception {
+                return integer + integer2;
+            }
+        });
 
         //打印结果
-        wordToSumStream.print();
-
-        //streamingContext.stop()  //不能停止我们的采集功能
+        wordCounts.print();
 
         //启动采集器
         streamingContext.start();
@@ -200,6 +201,8 @@ public class StreamMain {
             streamingContext.awaitTermination();
         } catch (Exception ex){
             ex.printStackTrace();
+        }finally {
+            streamingContext.close();
         }
 
         //nc -lc 9999   linux 下往9999端口发数据。
