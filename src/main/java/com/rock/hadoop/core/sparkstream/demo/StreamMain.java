@@ -10,6 +10,7 @@ import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.Seconds;
+import org.apache.spark.streaming.StreamingContext;
 import org.apache.spark.streaming.api.java.*;
 import org.apache.spark.streaming.kafka010.ConsumerStrategies;
 import org.apache.spark.streaming.kafka010.KafkaUtils;
@@ -29,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class StreamMain {
     public static void main(String[] args) throws InterruptedException {
-        socketStream();
+        fileStream();
     }
 
     public static void kafkaStream(String[] args){
@@ -133,27 +134,36 @@ public class StreamMain {
         jssc.close();
     }
 
+    /**
+     * 具体的需要测，好像会定期扫描文件夹下的文件内容是否变更，变更，会全部重新计算一遍，具体详情需要进一步实践
+     */
     public static void fileStream(){
         // 使用SparkStreaming
         SparkConf config = new SparkConf().setMaster("local[*]").setAppName("SparkStreaming02_FileDataSource");
         JavaStreamingContext streamingContext = new JavaStreamingContext(config, Seconds.apply(3)); //3 秒钟，伴生对象，不需要new
 
         // 从文件夹中采集数据
-        JavaDStream<String> fileDStreaming = streamingContext.textFileStream("test");
+        JavaDStream<String> fileDStreaming = streamingContext.textFileStream("D:\\opayProduct\\hadoop\\data");
 
-        // 将采集的数据进行分解（偏平化）
-        JavaDStream<String> wordDstream = fileDStreaming.flatMap(
-                (String line) -> Arrays.asList(line.split(" ")).iterator() //偏平化后，按照空格分割
-        );
+        //将采集的数据进行分解--拆分成单词
+        JavaDStream<String> wordDStream = fileDStreaming.flatMap( (String line) ->{
+            String[] split = line.split("");
+            return Arrays.asList(split).iterator();
+        });
 
-        // 将我们的数据进行转换方便分析
-        JavaDStream<Tuple2<String, Integer>> mapDstream = wordDstream.map((String word) -> new Tuple2<String, Integer>(word, 1));
-
-        // 将转换后的数据聚合在一起处理
-        JavaDStream<Tuple2<String, Integer>> wordToSumStream = mapDstream.reduce((t1, t2) -> new Tuple2(t1._1, t1._2 + t2._2));
+        //计算每个单词出现的个数
+        JavaPairDStream<String, Integer> wordCounts = wordDStream.mapToPair(new PairFunction<String, String, Integer>() {
+            public Tuple2<String, Integer> call(String s) throws Exception {
+                return new Tuple2<String, Integer>(s, 1);
+            }
+        }).reduceByKey(new Function2<Integer, Integer, Integer>() {
+            public Integer call(Integer integer, Integer integer2) throws Exception {
+                return integer + integer2;
+            }
+        });
 
         // 打印结果
-        wordToSumStream.print();
+        wordCounts.print();
 
         // 启动采集器
         streamingContext.start();
