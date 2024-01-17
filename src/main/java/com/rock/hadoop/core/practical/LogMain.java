@@ -35,11 +35,11 @@ public class LogMain {
     }
 
     /**
-     * 处理所有相同URI的平均耗时
+     * 解析日志文件中，处理所有相同URI的平均耗时并排序
      * @param args
      */
     public static void checkUriArgCost(String[] args){
-        args=new String[]{"D:\\opay-card-web-2024-01-14-1\\opay-card-web-2024-01-14-1","D:\\opayProduct\\hadoop\\conf\\resultArg2"};
+        args=new String[]{"D:\\opay-card-web-2024-01-14-1\\opay-card-web-2024-01-14-1","D:\\opayProduct\\hadoop\\conf\\resultArg3"};
         SparkConf sparkConf = new SparkConf().setAppName("ApiArgCost").setMaster("local");
         JavaSparkContext ctx = new JavaSparkContext(sparkConf);
 
@@ -153,8 +153,8 @@ public class LogMain {
         //排完序的元数据，再交换回来
         JavaPairRDD<String, Float> resultSort = dataSort.mapToPair(tp -> tp.swap());
 
-        //保存结果到文件夹
-        resultSort.saveAsTextFile(args[1]);
+        //保存结果到文件夹-.coalesce(1)或者.repartition(1)输出到一个文件中--验证是OK的
+        resultSort.coalesce(1).saveAsTextFile(args[1]);
 
         ctx.stop();
     }

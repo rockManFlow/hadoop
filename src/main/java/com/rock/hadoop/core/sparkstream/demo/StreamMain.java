@@ -1,6 +1,7 @@
 package com.rock.hadoop.core.sparkstream.demo;
 
 import com.fasterxml.jackson.databind.deser.std.StringDeserializer;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.function.FlatMapFunction;
@@ -25,9 +26,10 @@ import java.util.concurrent.TimeUnit;
  * 从不同输入源来获取数据--需要引入不同源包
  * 数据可以从Kafka，Flume， Kinesis， 或TCP Socket来源获得
  */
+@Slf4j
 public class StreamMain {
     public static void main(String[] args) throws InterruptedException {
-
+        socketStream();
     }
 
     public static void kafkaStream(String[] args){
@@ -164,11 +166,17 @@ public class StreamMain {
         }
     }
 
+    /**
+     * ok
+     */
     public static void socketStream(){
         //使用SparkStreaming 完成WordCount
         SparkConf config = new SparkConf().setMaster("local[*]").setAppName("SparkStreaming01_WordCount");
 
-        JavaStreamingContext streamingContext = new JavaStreamingContext(config, Seconds.apply(3)); //3 秒钟，伴生对象，不需要new
+        //3 秒钟当做一个时间间隔，取一次数据（接收的数据缓存三秒的内容）
+        JavaStreamingContext streamingContext = new JavaStreamingContext(config, Seconds.apply(3));
+
+        //之后的处理逻辑是处理这三秒内的数据
 
         //从指定的端口中采集数据--从socket源获取数据
         JavaReceiverInputDStream<String> socketLineStreaming = streamingContext.socketTextStream("127.0.0.1", 9999);//一行一行的接受
@@ -198,6 +206,7 @@ public class StreamMain {
 
         //Drvier等待采集器停止，
         try {
+            log.info("spark streaming start");
             streamingContext.awaitTermination();
         } catch (Exception ex){
             ex.printStackTrace();

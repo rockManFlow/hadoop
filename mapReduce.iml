@@ -255,6 +255,10 @@
     <orderEntry type="library" name="Maven: net.sf.py4j:py4j:0.10.9.7" level="project" />
     <orderEntry type="library" name="Maven: org.apache.spark:spark-tags_2.13:3.4.1" level="project" />
     <orderEntry type="library" name="Maven: org.apache.commons:commons-crypto:1.1.0" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.spark:spark-streaming_2.13:3.4.1" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.spark:spark-streaming-kafka-0-10_2.13:3.4.1" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.spark:spark-token-provider-kafka-0-10_2.13:3.4.1" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.kafka:kafka-clients:3.3.2" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.14.0" level="project" />
     <orderEntry type="library" name="Maven: org.yaml:snakeyaml:1.33" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-core:2.14.0" level="project" />
@@ -296,7 +300,6 @@
     <orderEntry type="library" name="Maven: com.alibaba.fastjson2:fastjson2-extension:2.0.39" level="project" />
     <orderEntry type="library" name="Maven: com.alibaba.fastjson2:fastjson2:2.0.39" level="project" />
     <orderEntry type="library" name="Maven: org.apache.kafka:kafka_2.13:3.5.1" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.kafka:kafka-clients:3.5.1" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Maven: org.apache.kafka:kafka-server-common:3.5.1" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Maven: org.apache.kafka:kafka-group-coordinator:3.5.1" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Maven: org.apache.kafka:kafka-metadata:3.5.1" level="project" />
