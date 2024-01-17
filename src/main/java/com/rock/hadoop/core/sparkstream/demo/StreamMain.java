@@ -17,10 +17,7 @@ import org.apache.spark.streaming.kafka010.KafkaUtils;
 import org.apache.spark.streaming.kafka010.LocationStrategies;
 import scala.Tuple2;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -140,6 +137,9 @@ public class StreamMain {
 
     /**
      * 具体的需要测，好像会定期扫描文件夹下的文件内容是否变更，变更，会全部重新计算一遍，具体详情需要进一步实践
+     * 作业不会重复读取同一个文件，会根据最后修改时间判断是否读取。如果最后修改时间不一致，会重头开始读取
+     *
+     * 所以：日志文件的实时处理建议采用flume+Kafka+spark Streaming更常用
      */
     public static void fileStream(){
         // 使用SparkStreaming
@@ -229,5 +229,30 @@ public class StreamMain {
         }
 
         //nc -lc 9999   linux 下往9999端口发数据。
+    }
+
+    public static void logFileStream() throws InterruptedException {
+        String appName = "LogAnalysis";
+        int batchIntervalSeconds = 5;
+
+        SparkConf conf = new SparkConf().setAppName(appName).setMaster("local[*]");
+        JavaStreamingContext ssc = new JavaStreamingContext(conf, Durations.seconds(batchIntervalSeconds));
+
+        //从hdfs中来读取数据
+        JavaDStream<String> logLines = ssc.textFileStream("hdfs://master:9000/user/spark/logs");
+
+        JavaPairDStream<String, Integer> ipCounts = logLines.flatMapToPair((line) -> {
+            String[] fields = line.split(" ");
+            if (fields.length >= 8 && fields[7].startsWith("/")) {
+                return Arrays.asList(new Tuple2<>(fields[0], 1)).iterator();
+            } else {
+                return Collections.<Tuple2<String,Integer>>emptyIterator();
+            }
+        }).reduceByKeyAndWindow((a, b) -> a + b, Durations.minutes(10), Durations.minutes(1));
+
+        ipCounts.print();
+
+        ssc.start();
+        ssc.awaitTermination();
     }
 }
