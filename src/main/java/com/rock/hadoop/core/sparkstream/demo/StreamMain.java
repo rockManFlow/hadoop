@@ -34,16 +34,24 @@ public class StreamMain {
         fileStream();
     }
 
+    /**
+     * Spark Streaming从Kafka获取数据进行分析相比直接使用普通方式进行分析有以下优势：
+     *
+     * 实时性：Spark Streaming可以从Kafka中实时获取数据，并进行实时处理和分析。这对于许多应用来说是非常重要的，特别是那些需要快速响应或实时监控的场景。
+     * 分布式处理：Spark Streaming可以利用Spark的分布式计算能力，对大规模数据进行高效的处理和分析。通过将数据分片并在多个节点上并行处理，可以大大提高处理速度和吞吐量。
+     * 容错性：Spark Streaming具有较好的容错机制，能够自动处理失败的任务和节点，确保数据的可靠性和系统的稳定性。
+     * 易于集成：Kafka与Spark Streaming的集成非常方便，提供了丰富的API和工具，简化了数据流的开发和维护工作。
+     * 灵活性：Spark Streaming可以与其他Spark组件（如Spark SQL、Spark MLlib等）无缝集成，方便进行复杂的数据分析和机器学习任务。
+     * 高效的数据处理：Spark Streaming能够高效地处理数据，减少了数据的冗余和重复处理，提高了数据处理效率。
+     * 可扩展性：随着数据规模的增长，Spark Streaming可以方便地扩展计算资源，支持更大规模的数据处理和分析。
+     * 综上所述，通过Spark Streaming从Kafka获取数据进行分析可以提供更高的实时性、分布式处理能力、容错性、灵活性、数据处理效率和可扩展性等方面的优势。
+     * @param args
+     */
     public static void kafkaStream(String[] args){
         /*
 		  node-01:9092,node-02:9092,node-03:9092 directKafka_test
 		 */
         if (args.length < 2) {
-            System.err.println(
-                    "|Usage: DirectKafkaWordCount <brokers> <topics> "
-                            + "|  <brokers> is a list of one or more Kafka brokers"
-                            + "|  <topics> is a list of one or more kafka topics to consume from"
-                            + "|");
             System.exit(1);
         }
 
