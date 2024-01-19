@@ -17,15 +17,16 @@ import org.apache.spark.streaming.kafka010.KafkaUtils;
 import org.apache.spark.streaming.kafka010.LocationStrategies;
 import scala.Tuple2;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
  * 从不同输入源来获取数据--需要引入不同源包
- * 数据可以从Kafka，Flume， Kinesis， 或TCP Socket来源获得
+ * 数据可以从Kafka，Flume， Kinesis， 或TCP Socket，HDFS（Hadoop分布式文件系统，Spark Streaming可以将数据从HDFS中读取并处理为实时数据流）来源获得。
+ * 这些都是目前已有包支持的
+ *
+ * Custom Stream Sources：除了上述提到的数据源外，Spark Streaming还支持自定义数据源的开发，这意味着可以从任何提供特定接口的数据源中获取实时数据。
+ *
  */
 @Slf4j
 public class StreamMain {
@@ -33,16 +34,24 @@ public class StreamMain {
         fileStream();
     }
 
+    /**
+     * Spark Streaming从Kafka获取数据进行分析相比直接使用普通方式进行分析有以下优势：
+     *
+     * 实时性：Spark Streaming可以从Kafka中实时获取数据，并进行实时处理和分析。这对于许多应用来说是非常重要的，特别是那些需要快速响应或实时监控的场景。
+     * 分布式处理：Spark Streaming可以利用Spark的分布式计算能力，对大规模数据进行高效的处理和分析。通过将数据分片并在多个节点上并行处理，可以大大提高处理速度和吞吐量。
+     * 容错性：Spark Streaming具有较好的容错机制，能够自动处理失败的任务和节点，确保数据的可靠性和系统的稳定性。
+     * 易于集成：Kafka与Spark Streaming的集成非常方便，提供了丰富的API和工具，简化了数据流的开发和维护工作。
+     * 灵活性：Spark Streaming可以与其他Spark组件（如Spark SQL、Spark MLlib等）无缝集成，方便进行复杂的数据分析和机器学习任务。
+     * 高效的数据处理：Spark Streaming能够高效地处理数据，减少了数据的冗余和重复处理，提高了数据处理效率。
+     * 可扩展性：随着数据规模的增长，Spark Streaming可以方便地扩展计算资源，支持更大规模的数据处理和分析。
+     * 综上所述，通过Spark Streaming从Kafka获取数据进行分析可以提供更高的实时性、分布式处理能力、容错性、灵活性、数据处理效率和可扩展性等方面的优势。
+     * @param args
+     */
     public static void kafkaStream(String[] args){
         /*
 		  node-01:9092,node-02:9092,node-03:9092 directKafka_test
 		 */
         if (args.length < 2) {
-            System.err.println(
-                    "|Usage: DirectKafkaWordCount <brokers> <topics> "
-                            + "|  <brokers> is a list of one or more Kafka brokers"
-                            + "|  <topics> is a list of one or more kafka topics to consume from"
-                            + "|");
             System.exit(1);
         }
 
@@ -136,6 +145,9 @@ public class StreamMain {
 
     /**
      * 具体的需要测，好像会定期扫描文件夹下的文件内容是否变更，变更，会全部重新计算一遍，具体详情需要进一步实践
+     * 作业不会重复读取同一个文件，会根据最后修改时间判断是否读取。如果最后修改时间不一致，会重头开始读取
+     *
+     * 所以：日志文件的实时处理建议采用flume+Kafka+spark Streaming更常用
      */
     public static void fileStream(){
         // 使用SparkStreaming
@@ -225,5 +237,30 @@ public class StreamMain {
         }
 
         //nc -lc 9999   linux 下往9999端口发数据。
+    }
+
+    public static void logFileStream() throws InterruptedException {
+        String appName = "LogAnalysis";
+        int batchIntervalSeconds = 5;
+
+        SparkConf conf = new SparkConf().setAppName(appName).setMaster("local[*]");
+        JavaStreamingContext ssc = new JavaStreamingContext(conf, Durations.seconds(batchIntervalSeconds));
+
+        //从hdfs中来读取数据
+        JavaDStream<String> logLines = ssc.textFileStream("hdfs://master:9000/user/spark/logs");
+
+        JavaPairDStream<String, Integer> ipCounts = logLines.flatMapToPair((line) -> {
+            String[] fields = line.split(" ");
+            if (fields.length >= 8 && fields[7].startsWith("/")) {
+                return Arrays.asList(new Tuple2<>(fields[0], 1)).iterator();
+            } else {
+                return Collections.<Tuple2<String,Integer>>emptyIterator();
+            }
+        }).reduceByKeyAndWindow((a, b) -> a + b, Durations.minutes(10), Durations.minutes(1));
+
+        ipCounts.print();
+
+        ssc.start();
+        ssc.awaitTermination();
     }
 }
