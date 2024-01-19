@@ -83,8 +83,8 @@ public class StreamMain {
 
         // 创建针对Kafka数据来源的输入DStream（离线流，代表了一个源源不断的数据来源，抽象）
         // 选用kafka direct api（很多好处，包括自己内部自适应调整每次接收数据量的特性，等等）
-        String brokers = args[0];
-        String topic = args[1];
+        String brokers = "172.17.48.16:9092";
+        String topic = "USER_BEHAVIOR_DATA";
 
         Map<String, Object> kafkaParams = new HashMap<>();
         kafkaParams.put("bootstrap.servers", brokers);
