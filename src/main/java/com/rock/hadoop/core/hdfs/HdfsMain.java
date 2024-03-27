@@ -45,9 +45,8 @@ public class HdfsMain {
             if(i==-1){
                 break;
             }
-            outputStream.write(data);
+            outputStream.write(data,0,i);
             outputStream.flush();
-            data=new byte[32];
         }
 
         outputStream.close();

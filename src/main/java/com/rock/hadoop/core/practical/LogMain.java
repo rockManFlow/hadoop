@@ -16,6 +16,7 @@ import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.PairFunction;
 import scala.Tuple2;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
@@ -31,15 +32,17 @@ import scala.collection.JavaConverters.*;
 @Slf4j
 public class LogMain {
     public static void main(String[] args) {
+        long start=System.currentTimeMillis();
         checkUriArgCost(null);
+        System.out.println("cost:"+(System.currentTimeMillis()-start));
     }
 
     /**
-     * 解析日志文件中，处理所有相同URI的平均耗时并排序
+     * 解析日志文件中，处理所有相同URI的平均耗时和接口总调用次数并排序
      * @param args
      */
     public static void checkUriArgCost(String[] args){
-        args=new String[]{"D:\\opay-card-web-2024-01-14-1\\opay-card-web-2024-01-14-1","D:\\opayProduct\\hadoop\\conf\\resultArg3"};
+        args=new String[]{"D:\\opay-card-web-2024-01-14-1\\opay-card-web-2024-01-14-1","D:\\opayProduct\\hadoop\\conf\\resultArg4"};
         SparkConf sparkConf = new SparkConf().setAppName("ApiArgCost").setMaster("local");
         JavaSparkContext ctx = new JavaSparkContext(sparkConf);
 
@@ -126,11 +129,11 @@ public class LogMain {
             }
         });
 
-        //求平均值
-        JavaPairRDD<String, Float> argValuePairRDD = newJavaPairRDD.groupByKey().mapValues(new Function<Iterable<Long>, Float>() {
+        //求耗时的平均值和总调用次数
+        JavaPairRDD<String, String> argValuePairRDD = newJavaPairRDD.groupByKey().mapValues(new Function<Iterable<Long>, String>() {
             @Override
-            public Float call(Iterable<Long> longs) throws Exception {
-                Long sum = 0L;
+            public String call(Iterable<Long> longs) throws Exception {
+                long sum = 0L;
                 int count = 0;
                 Iterator<Long> iterator = longs.iterator();
                 while (iterator.hasNext()) {
@@ -138,20 +141,20 @@ public class LogMain {
                     count++;
                 }
                 if (count == 0) {
-                    return new BigDecimal("0.00").floatValue();
+                    return new BigDecimal("0.00").floatValue()+"#"+sum;
                 }
-                return new BigDecimal(sum).divide(new BigDecimal(count), 2, RoundingMode.HALF_UP).floatValue();
+                return new BigDecimal(sum).divide(new BigDecimal(count), 2, RoundingMode.HALF_UP).floatValue()+"#"+sum;
             }
         });
 
-
-
         // 交换key，再排序--元数据key-value进行交换
-        JavaPairRDD<Float, String> dataSwap = argValuePairRDD.mapToPair(tp -> tp.swap());
-        //通过交换后的value-key通过value进行降序排序
-        JavaPairRDD<Float, String> dataSort = dataSwap.sortByKey(false);
+        JavaPairRDD<String, String> dataSwap = argValuePairRDD.mapToPair(tp -> tp.swap());
+        //通过交换后的value-key通过value进行降序排序-单独耗时降序排序
+//        JavaPairRDD<Float, String> dataSort = dataSwap.sortByKey(false);
+        //通过交换后的value-key通过value进行降序排序-耗时的平均值和总调用次数
+        JavaPairRDD<String, String> dataSort = dataSwap.sortByKey(new LogComparator(),false);
         //排完序的元数据，再交换回来
-        JavaPairRDD<String, Float> resultSort = dataSort.mapToPair(tp -> tp.swap());
+        JavaPairRDD<String, String> resultSort = dataSort.mapToPair(tp -> tp.swap());
 
         //保存结果到文件夹-.coalesce(1)或者.repartition(1)输出到一个文件中--验证是OK的
         resultSort.coalesce(1).saveAsTextFile(args[1]);
@@ -293,5 +296,19 @@ public class LogMain {
         private String level;
         private String contextMap;
         private String traceId;
+    }
+
+    public static class LogComparator implements Comparator<String>, Serializable{
+        @Override
+        public int compare(String value1, String value2) {
+            float avgCost1=Float.valueOf(value1.split("#")[0]);
+            float avgCost2=Float.valueOf(value2.split("#")[0]);
+            if(avgCost1>avgCost2){
+                return 1;
+            }else if (avgCost1<avgCost2){
+                return -1;
+            }
+            return 0;
+        }
     }
 }
