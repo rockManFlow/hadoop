@@ -16,7 +16,7 @@ public class KafkaConfig {
 
     public Producer buildProvider(){
         Properties props = new Properties();
-        props.put("bootstrap.servers", "172.17.48.16:9092");
+        props.put("bootstrap.servers", "127.0.0.1:9092");
         props.put("acks", "1"); // 消息确认机制:  all表示 必须等待kafka端所有的副本全部接受到数据 确保数据不丢失
         // 说明: 在数据发送的时候, 可以发送键值对的, 此处是用来定义k v的序列化的类型
         props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
@@ -33,7 +33,7 @@ public class KafkaConfig {
     public void buildConsumer(){
         //1.1: 指定消费者的配置信息
         Properties props = new Properties();
-        props.setProperty("bootstrap.servers", "172.17.48.16:9092");
+        props.setProperty("bootstrap.servers", "127.0.0.1:9092");
         props.setProperty("group.id", "group-test"); // 消费者组的名称
         props.setProperty("enable.auto.commit", "true"); // 消费者自定提交消费偏移量信息给kafka
         props.setProperty("auto.commit.interval.ms", "1000"); // 每次自动提交偏移量时间间隔  1s一次
@@ -71,6 +71,11 @@ public class KafkaConfig {
     }
 
     public static void main(String[] args) {
+        KafkaConfig kafkaConfig=new KafkaConfig();
+        kafkaConfig.buildConsumer();
+    }
+
+    public static void main1(String[] args) {
         KafkaConfig kafkaConfig=new KafkaConfig();
         Producer producer = kafkaConfig.buildProvider();
         String topic="test-example";
