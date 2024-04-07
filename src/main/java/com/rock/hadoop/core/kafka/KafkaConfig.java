@@ -11,6 +11,7 @@ import java.util.Properties;
 
 /**
  * 接入Kafka
+ * 实践是没问题的
  */
 public class KafkaConfig {
 

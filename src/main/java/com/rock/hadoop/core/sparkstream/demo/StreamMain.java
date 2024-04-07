@@ -45,7 +45,15 @@ public class StreamMain {
      * 高效的数据处理：Spark Streaming能够高效地处理数据，减少了数据的冗余和重复处理，提高了数据处理效率。
      * 可扩展性：随着数据规模的增长，Spark Streaming可以方便地扩展计算资源，支持更大规模的数据处理和分析。
      * 综上所述，通过Spark Streaming从Kafka获取数据进行分析可以提供更高的实时性、分布式处理能力、容错性、灵活性、数据处理效率和可扩展性等方面的优势。
-     * @param args
+     *
+     * 通过Receiver模式 又称kafka高级api模式，来与Kafka整合。
+     * 效果：SparkStreaming中的Receivers，恰好Kafka有发布/订阅 ，然而：此种方式企业不常用，说明有BUG，不符合企业需求。
+     * 因为：接收到的数据存储在Executor的内存，会出现数据漏处理或者多处理状况 简单的理解就是kafka把消息全部分装好，
+     * 提供给spark去调用，本来kafka的消息分布在不同的partition上面，相当于做了一步数据合并，在发送给spark，
+     * 故spark可以设置excutor个数去消费这部分数据，效率相对慢一些
+     *
+     * Direct模式 又称kafka低级api模式
+     * 需要自己维护取的位移数等信息
      */
     public static void kafkaStream(String[] args){
         /*
@@ -92,7 +100,7 @@ public class StreamMain {
 
         // 创建针对Kafka数据来源的输入DStream（离线流，代表了一个源源不断的数据来源，抽象）
         // 选用kafka direct api（很多好处，包括自己内部自适应调整每次接收数据量的特性，等等）
-        String brokers = "172.17.48.16:9092";
+        String brokers = "127.0.0.1:9092";
         String topic = "USER_BEHAVIOR_DATA";
 
         Map<String, Object> kafkaParams = new HashMap<>();
