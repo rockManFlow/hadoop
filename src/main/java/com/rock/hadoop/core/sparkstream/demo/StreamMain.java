@@ -2,8 +2,10 @@ package com.rock.hadoop.core.sparkstream.demo;
 
 import com.fasterxml.jackson.databind.deser.std.StringDeserializer;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.spark.SparkConf;
+import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.PairFunction;
@@ -12,11 +14,15 @@ import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.Seconds;
 import org.apache.spark.streaming.StreamingContext;
 import org.apache.spark.streaming.api.java.*;
+import org.apache.spark.streaming.dstream.DStream;
+import org.apache.spark.streaming.dstream.InputDStream;
 import org.apache.spark.streaming.kafka010.ConsumerStrategies;
 import org.apache.spark.streaming.kafka010.KafkaUtils;
 import org.apache.spark.streaming.kafka010.LocationStrategies;
+import scala.Function1;
 import scala.Tuple2;
 
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 

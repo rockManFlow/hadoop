@@ -17,6 +17,23 @@ Spark Streaming（准实时的响应--处理速度维持在秒级）
 
 总之需要程序自己兼容处理，肯定会有不全的数据。
 
+==============================================
+Spark1.3 版本后，kafkaUtils 里面提供了两个创建 DStream 的方法，一种为KafkaUtils.createDstream，另一种为KafkaUtils.createDirectStream。
+
+KafkaUtils.createDstream
+构造函数为KafkaUtils.createDstream(ssc,[zk], [consumer group id], [per-topic,partitions] ) 使用了receivers来接收数据，
+利用的是Kafka高层次的消费者api，对于所有的receivers接收到的数据将会保存在Spark executors中，然后通过Spark Streaming启动job来处理这些数据，
+默认会丢失，可启用WAL日志，它同步将接受到数据保存到分布式文件系统上比如HDFS。 所以数据在出错的情况下可以恢复出来 。
+
+KafkaUtils.createDirectStream
+不同于Receiver接收数据，这种方式定期地从kafka的topic下对应的partition中查询最新的偏移量，再根据偏移量范围在每个batch里面处理数据，
+Spark通过调用kafka简单的消费者API读取一定范围的数据。
+
+Spark Streaming实时消费kafka数据的时候，程序停止或者Kafka节点挂掉会导致数据丢失，
+Spark Streaming也没有设置CheckPoint（据说比较鸡肋，虽然可以保存Direct方式的offset，但是可能会导致频繁写HDFS占用IO），
+所以每次出现问题的时候，重启程序，而程序的消费方式是Direct，所以在程序down掉的这段时间Kafka上的数据是消费不到的，
+虽然可以设置offset为smallest，但是会导致重复消费，重新overwrite hive上的数据，但是不允许重复消费的场景就不能这样做。
+
 
 
 
