@@ -28,8 +28,8 @@ import java.util.List;
 
 /**
  * @author rock
- * @detail 日志分析，挑选出指定接口调用耗时
- * @date 2024/1/15 16:13
+ * @detail 日志分析，挑选日志中指定信息并统计
+ * 日志示例：2024-05-22T00:00:02.999 [256621110643605] </api/v3/cashier/initialize>, <0>, <138ms>, xxx
  */
 @Slf4j
 public class LogAnalyseMain {
@@ -40,7 +40,7 @@ public class LogAnalyseMain {
     }
 
     /**
-     * 解析日志文件中，处理所有相同URI的平均耗时和接口总调用次数并排序
+     * 统计商户ID并统计
      * @param args
      */
     public static void checkUriArgCost(String[] args){
@@ -53,25 +53,14 @@ public class LogAnalyseMain {
          */
         JavaRDD<String> lines = ctx.textFile(args[0], 1);
 
-        //包括指定信息
-        List<String> includeList = Arrays.asList("@P", "@R");
-        //过滤需要的信息
-        JavaRDD<String> filterRdd = lines.filter(new Function<String, Boolean>() {
-            @Override
-            public Boolean call(String s) throws Exception {
-                if (StringUtils.isNotBlank(s) && containsAll(s, includeList)) {
-                    return true;
-                }
-                return false;
-            }
-        });
-
         //转成指定实体类rdd
-        JavaRDD<LogInfo> logInfoRDD = filterRdd.map(new Function<String, LogInfo>() {
+        JavaRDD<String> logInfoRDD = lines.map(new Function<String, String>() {
             @Override
-            public LogInfo call(String s) throws Exception {
+            public String call(String s) throws Exception {
                 try {
-                    return JSON.parseObject(s, LogInfo.class);
+                    if(StringUtils.isNotBlank(s)){
+                        return s.split(" ")[1];
+                    }
                 }catch (Exception e){
                     log.error("parseObject error",e);
                 }
@@ -79,84 +68,33 @@ public class LogAnalyseMain {
             }
         });
 
-        //转换成指定数据结构
-        JavaPairRDD<String, Long> timeJavaPairRDD = logInfoRDD.mapToPair(new PairFunction<LogInfo, String, Long>() {
+        //统计商户次数
+        JavaPairRDD<String, Integer> timeJavaPairRDD = logInfoRDD.mapToPair(new PairFunction<String, String, Integer>() {
             @Override
-            public Tuple2<String, Long> call(LogInfo logInfo) throws Exception {
-                String uri = "";
-                String message = logInfo.getMessage();
-                if (StringUtils.isNotBlank(message)) {
-                    String[] msgArray = message.split(" ");
-                    if (msgArray.length > 0) {
-                        uri = msgArray[0];
-                    }
+            public Tuple2<String, Integer> call(String merchantId) throws Exception {
+                if(StringUtils.isNotBlank(merchantId)){
+                    merchantId=merchantId.replace("[","").replace("]","");
                 }
-                String key = uri + "#"+logInfo.getContextMap();
-                LocalDateTime localDateTime =null;
-                try {
-                    localDateTime = DateTimeUtil.parseStrToUtcTime(logInfo.getLogTime());
-                }catch (DateTimeParseException e){
-                    localDateTime = DateTimeUtil.parseStrToTime(logInfo.getLogTime(),DateTimeUtil.UTC_PATTERN_2);
-                }
-                return new Tuple2<String, Long>(key, localDateTime.toInstant(ZoneOffset.UTC).toEpochMilli());
+                return new Tuple2<String, Integer>(merchantId,1);
             }
         });
 
-        //计算两个相同请求key对应的请求时间差值
-        JavaPairRDD<String, Long> sameReqUriCostRDD = timeJavaPairRDD.reduceByKey(new Function2<Long, Long, Long>() {
+        //计算两个相同请求key对应的求和
+        JavaPairRDD<String, Integer> sameReqUriCostRDD = timeJavaPairRDD.reduceByKey(new Function2<Integer, Integer, Integer>() {
             //reduce阶段，key相同的value怎么处理的问题
             @Override
-            public Long call(Long one1, Long one2) {
-                return (one1-one2)>0?(one1-one2):(one2-one1);
+            public Integer call(Integer one1, Integer one2) {
+                return one1+one2;
             }
         });
 
-        //过滤非指定格式数据
-        JavaPairRDD<String, Long> filterIllegalDataRDD = sameReqUriCostRDD.filter(new Function<Tuple2<String, Long>, Boolean>() {
-            @Override
-            public Boolean call(Tuple2<String, Long> stringLongTuple2) throws Exception {
-                if (stringLongTuple2._2 > 1000000L || stringLongTuple2._2 <= 0) {
-                    return false;
-                }
-                return true;
-            }
-        });
-
-        //把处理完的相同URI去掉线程id
-        JavaPairRDD<String, Long> newJavaPairRDD = filterIllegalDataRDD.mapToPair(new PairFunction<Tuple2<String, Long>, String, Long>() {
-            @Override
-            public Tuple2<String, Long> call(Tuple2<String, Long> stringLongTuple2) throws Exception {
-                String newKey = stringLongTuple2._1.split("#")[0];
-                return new Tuple2(newKey, stringLongTuple2._2);
-            }
-        });
-
-        //求耗时的平均值和总调用次数
-        JavaPairRDD<String, String> argValuePairRDD = newJavaPairRDD.groupByKey().mapValues(new Function<Iterable<Long>, String>() {
-            @Override
-            public String call(Iterable<Long> longs) throws Exception {
-                long sum = 0L;
-                int count = 0;
-                Iterator<Long> iterator = longs.iterator();
-                while (iterator.hasNext()) {
-                    sum = sum + iterator.next();
-                    count++;
-                }
-                if (count == 0) {
-                    return new BigDecimal("0.00").floatValue()+"#"+sum;
-                }
-                return new BigDecimal(sum).divide(new BigDecimal(count), 2, RoundingMode.HALF_UP).floatValue()+"#"+sum;
-            }
-        });
 
         // 交换key，再排序--元数据key-value进行交换
-        JavaPairRDD<String, String> dataSwap = argValuePairRDD.mapToPair(tp -> tp.swap());
+        JavaPairRDD<Integer, String> dataSwap = sameReqUriCostRDD.mapToPair(tp -> tp.swap());
         //通过交换后的value-key通过value进行降序排序-单独耗时降序排序
-//        JavaPairRDD<Float, String> dataSort = dataSwap.sortByKey(false);
-        //通过交换后的value-key通过value进行降序排序-耗时的平均值和总调用次数
-        JavaPairRDD<String, String> dataSort = dataSwap.sortByKey(new LogComparator(),false);
+        JavaPairRDD<Integer, String> dataSort = dataSwap.sortByKey(false);
         //排完序的元数据，再交换回来
-        JavaPairRDD<String, String> resultSort = dataSort.mapToPair(tp -> tp.swap());
+        JavaPairRDD<String, Integer> resultSort = dataSort.mapToPair(tp -> tp.swap());
 
         //保存结果到文件夹-.coalesce(1)或者.repartition(1)输出到一个文件中--验证是OK的
         resultSort.coalesce(1).saveAsTextFile(args[1]);
