@@ -87,3 +87,17 @@ Standalone Cluster
  * master=local[4]：表示单机本地4核运行
  * master=spark://master:7077：表示在一个spark standalone cluster 上运行
  */
+
+
+ 【】spark中哪些操作可以并行运行，哪些是聚合串行运行
+ *并行运行的操作类型包括但不限于：
+ map：对RDD中的每个元素应用一个函数。
+ flatMap：类似于map，但每个输入元素可以映射到多个输出元素。
+ filter：对RDD中的元素进行过滤。
+ union：对两个RDD进行合并。
+ join：当RDD是(K,V)和(K,W)类型时，对它们按键进行连接。
+ groupByKey：当RDD是(K,V)类型时，对键进行分组。
+ reduceByKey：当RDD是(K,V)类型时，对每个键的值进行规约。
+ sortByKey：当RDD是(K,V)类型时，对键进行排序。
+
+ *聚合串行运行
