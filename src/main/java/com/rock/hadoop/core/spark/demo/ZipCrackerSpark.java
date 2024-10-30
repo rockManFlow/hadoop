@@ -40,16 +40,20 @@ public class ZipCrackerSpark {
 //        for(String m:collect){
 //            unzip(zipFilePath,m);
 //        }
+        //并行执行
+        lines.foreach((s)->{
+             unzip(zipFilePath,s);
+        });
 
         //这种可以并行执行，但操作需要动作才会执行
-        JavaRDD<String> map = lines.map(new Function<String, String>() {
-            @Override
-            public String call(String s) throws Exception {
-                unzip(zipFilePath,s);
-                return s;
-            }
-        });
-        map.count();//动作计数
+//        JavaRDD<String> map = lines.map(new Function<String, String>() {
+//            @Override
+//            public String call(String s) throws Exception {
+//                unzip(zipFilePath,s);
+//                return s;
+//            }
+//        });
+//        map.count();//动作计数
 
 
         ctx.stop();
