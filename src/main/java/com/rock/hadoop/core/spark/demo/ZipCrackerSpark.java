@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * zip暴力破解解压
  * 1、spark中公共参数如何处理？
+ * 通过共有的配置文件来保存公共的配置信息
  * 2、编写的一个处理程序，会如何被处理？
  * 3、一个spark程序是如何在集群中运行的？
  */
